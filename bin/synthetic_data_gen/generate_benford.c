@@ -3,7 +3,8 @@
 #include <math.h>
 #include <time.h> 
 
-// Usage of the program
+		// Usage of the program
+
 int usage(char* name_of_file)
 {
 	printf("\nUsage: Generate a Benford set of a given size and save to a file.\n\n%s %s %s\n\n", name_of_file, "<size (int)>", "<filename (str)>");
@@ -11,15 +12,34 @@ int usage(char* name_of_file)
 	return 0;
 }
 
+
+		// Random Number Generation 
+
 // generate a random number between 0 and 1 
 double rand_0_1()
 {
     return rand() / ((double) RAND_MAX);
 }
 
-// where the magic happens
+// get seed from time / redo seed every 1000 times
+int gen_seed_time()
+{
+	srand(time(0)); 
+	return rand();
+}
+
+		// where the magic happens
+
 void benford(FILE *outfile, int iterate, int lower_limit, int upper_limit)
 {
+	// generate inital random seed from /dev/random ??
+	int seed;
+	FILE *f;
+	f = fopen("/dev/random", "r");
+  	fread(&seed, sizeof(seed), 1, f);
+ 	fclose(f);
+	srand(seed);
+
 	// Generate cumlative probability distribution of Benford distribution
 	int cdf_size = 9001;
 	double cdf[cdf_size];
@@ -40,17 +60,23 @@ void benford(FILE *outfile, int iterate, int lower_limit, int upper_limit)
 	int results[1000];
 	for(int i = 0; i < iterate; i++)
 	{
-		// write the list of 1000 numbers to a file; outfile
+		// write the list of 1000 numbers to a file; outfile & create new seed from time
 		if ((i % 1000) == 0 && (i != 0))
 		{
 			for(int j = 0; j < 1000; j++)
 			{
     			fprintf(outfile, "%d\n", results[j]);
 			}
+
+			// redo seed to maintain randomness
+			//seed = gen_seed_dev_random();   ????
 		}
 
-		// find a benford number
+		
+		// gen random num 
 		double rand_num = rand_0_1();
+
+		// find a benford number
 		for (int n = 1; n < 9001; n++) 
 		{
 			if ((cdf[n - 1]  <= rand_num) && (rand_num < cdf[n]))
@@ -75,7 +101,8 @@ void benford(FILE *outfile, int iterate, int lower_limit, int upper_limit)
 	fclose(outfile);
 }
 
-// main function
+		// main function
+
 int main(int argc, char *argv[])  
 {  
 	if(argc != 5)
@@ -120,9 +147,11 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-// gcc -Wall -Wextra -pedantic  generate_benford_set_first_second_digit_analysis.c -lm -o generate_benford_set_first_second_digit_analysis
+// gcc -Wall -Wextra -pedantic  generate_benford.c -lm -o generate_benford
 
-// ./generate_benford_set_first_second_digit_analysis output.txt 100000 5 9
+// ./generate_benford /home/odestorm/Documents/physics_project/analysis/data/synthetic/output.txt 100000 6 8
+
+// python3 ../digit_test/benford.py /home/odestorm/Documents/physics_project/analysis/data/synthetic/output.txt 1 /home/odestorm/Documents/physics_project/analysis/data/synthetic/figures/output.png
 
 // Console input format: filename, number of entries, lower limit magnitude, upper limit magnitude
 
