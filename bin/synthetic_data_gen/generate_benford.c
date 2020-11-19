@@ -7,8 +7,10 @@
 
 int usage(char* name_of_file)
 {
-	printf("\nUsage: Generate a Benford set of a given size and save to a file.\n\n%s %s %s\n\n", name_of_file, "<size (int)>", "<filename (str)>");
-	printf("This program is designed for single digit analysis and two-digit analysis!\n\n");
+	printf("\nUsage: Generate a Benford set of a given size and save to a file.\n\n%s %s %s %s %s\n\n", name_of_file, "<filename (str)>", "<size (int)>", "<lower magnitude (int)>", "<upper magnitude (int)>");
+	printf("This program is designed to generate synethetic datra for single and multiple digit benford analysis on the first four digits!\n");
+	printf("Lower and upper magnitude must be greater than or equal to four. The output is saved to filename and has size elements. Size must be a multiple of 1,000.\n");
+	printf("This program is designed to run on Linux and has been tested on Ubuntu 18.04 LTS kernel version 5.4.0-51-generic x86_64.\n");
 	return 0;
 }
 
@@ -21,18 +23,11 @@ double rand_0_1()
     return rand() / ((double) RAND_MAX);
 }
 
-// get seed from time / redo seed every 1000 times
-int gen_seed_time()
-{
-	srand(time(0)); 
-	return rand();
-}
-
 		// where the magic happens
 
 void benford(FILE *outfile, int iterate, int lower_limit, int upper_limit)
 {
-	// generate inital random seed from /dev/random ??
+	// generate inital random seed from /dev/random 
 	int seed;
 	FILE *f;
 	f = fopen("/dev/random", "r");
@@ -60,20 +55,15 @@ void benford(FILE *outfile, int iterate, int lower_limit, int upper_limit)
 	int results[1000];
 	for(int i = 0; i < iterate; i++)
 	{
-		// write the list of 1000 numbers to a file; outfile & create new seed from time
+		// write the list of 1000 numbers to a file
 		if ((i % 1000) == 0 && (i != 0))
 		{
 			for(int j = 0; j < 1000; j++)
 			{
     			fprintf(outfile, "%d\n", results[j]);
 			}
-
-			// redo seed to maintain randomness
-			//seed = gen_seed_dev_random();   ????
 		}
-
-		
-		// gen random num 
+		// gen random num between 0 and 1
 		double rand_num = rand_0_1();
 
 		// find a benford number
@@ -107,17 +97,20 @@ int main(int argc, char *argv[])
 {  
 	if(argc != 5)
 	{
-		fprintf(stderr, "Error: incorrect arguments given\n\n");
+		fprintf(stderr, "Error: invalid arguements\n\n");
+		usage(argv[0]);
 		exit(EXIT_FAILURE);
 	}
 	else if(atoi(argv[2]) % 1000 != 0)
 	{
 		fprintf(stderr, "Error: argument specifying number of entries to generate must be a multiple of 1,000\n\n");
+		usage(argv[0]);
 		exit(EXIT_FAILURE);
 	}
 	else if((atoi(argv[3]) - 4) < 0 || (atoi(argv[4]) - 4) < 0)
 	{
 		fprintf(stderr, "Error: arguments specifying upper and lower limit of length must be >= 4\n\n");
+		usage(argv[0]);
 		exit(EXIT_FAILURE);
 	}
 	else
@@ -134,6 +127,7 @@ int main(int argc, char *argv[])
 		if (outfile == NULL)
 		{
 		fprintf(stderr, "Error: couldn't write to output file, potential invalid filename\n\n");
+		usage(argv[0]);
 		exit(EXIT_FAILURE);
 		}
 

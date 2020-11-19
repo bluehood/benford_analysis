@@ -37,6 +37,9 @@
 - git branch
   - shows all branches
 
+- git show-branch
+  - shows all branches
+
 - git branch ***branchname***
   - make a branch of current branch
   
@@ -51,6 +54,15 @@
 
 - git push --delete origin ***branchname***
   - Delete remote branch
+
+- git reset --soft HEAD~1
+  - Delete most recent commit (on current branch)
+
+- git push --all origin
+  - Pushes all branches
+
+- git log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%C(bold blue) <%an> %Creset' --abbrev-commit
+  - log visualisation
 
 ## Git Flow
 
