@@ -28,12 +28,14 @@ double rand_0_1()
 void benford(FILE *outfile, int iterate, int lower_limit, int upper_limit)
 {
 	// generate inital random seed from /dev/random 
-	int seed;
-	FILE *f;
-	f = fopen("/dev/random", "r");
-  	fread(&seed, sizeof(seed), 1, f);
- 	fclose(f);
-	srand(seed);
+	// int seed;
+	// FILE *f;
+	// f = fopen("/dev/random", "r");
+  	// fread(&seed, sizeof(seed), 1, f);
+ 	// fclose(f);
+
+	// use current time to generate seed 
+	srand(time(0));
 
 	// Generate cumlative probability distribution of Benford distribution
 	int cdf_size = 9001;
