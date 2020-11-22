@@ -168,7 +168,7 @@ def first_digit_test(input_data):
     benford_frequency = []
 
     for x in benford_frequency_percent:
-        benford_frequency.append(int(x * len(input_data)))
+        benford_frequency.append(round(x * len(input_data)))
 
     #Compute Z statistic for this data:
     print("[Debug] Computing Z statistic")
@@ -268,7 +268,7 @@ def first_second_digit_test(input_data):
     benford_occurence = []
 
     for x in benford_percent:
-        benford_occurence.append(int(x * len(input_data)))
+        benford_occurence.append(round(x * len(input_data)))
 
     #Compute z statistic for this data:
     print("[Debug] Computing Z statistic")
@@ -371,7 +371,7 @@ def second_digit_test(input_data):
     benford_frequency = []
 
     for x in benford_frequency_percent:
-        benford_frequency.append(int(x * len(input_data)))
+        benford_frequency.append(round(x * len(input_data)))
 
     #Compute Z statistic for this data:
     print("[Debug] Computing Z statistic")

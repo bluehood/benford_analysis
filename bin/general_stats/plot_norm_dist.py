@@ -3,20 +3,15 @@ import numpy as np
 import scipy.stats as stats
 import matplotlib.pyplot as plt
 import pylab as pl
+import matplotlib.patches as mpatches
 
 
-def main(file_to_add):
-    #setup variables 
-    # file_to_add = '/home/odestorm/Documents/physics_project/analysis/data/synthetic/220_820_dstar.txt'
-    # files_to_add = ['120_420_dstar.txt', '220_820_dstar.txt', '620_920_dstar.txt']
-    pwd = '/home/odestorm/Documents/physics_project/analysis/data/synthetic/'
-    save = '/home/odestorm/Documents/physics_project/weekly_reports/week8/figures/'
-
-    #import d* values and add to figure
-    
-    # Import and sanitise data
+def main(file_to_add, savelocation):
+    # setup variables 
+    # import d* values and add to figure
+    # import and sanitise data
     entries = []
-    f = open(pwd + file_to_add, "r")
+    f = open(file_to_add, "r")
         
     for x in f:
         x = x.replace('\n', '')
@@ -36,17 +31,42 @@ def main(file_to_add):
     # Sort data and plot using pylab
     entries = sorted(entries)
     fit = stats.norm.pdf(entries, np.mean(entries), np.std(entries))
-    # print(fit)
+
+    # Update font size
+    plt.rcParams.update({'font.size': 11})
+    
+    # Calcualte pdf and plot
+    fig = plt.figure()
+    ax = plt.subplot(111)
     pl.plot(entries, fit,'-o', linewidth=2, markersize=5, label="Normal Distribution")
     pl.xlabel(r'$d^*$', size=12)
     pl.ylabel("Normalised Probability", size=12)
-    pl.hist(entries, density=True, color = "skyblue", ec="black", lw=1, label=r'Synthetic $d^*$ data')
-    plt.legend(loc='best')
-    pl.savefig(f"{save}{file_to_add.split('.')[0]}.png", bbox_inches='tight' ) 
+
+    # Calculate Bins we define the binwidth here
+    binwidth = 0.05 
+    define_bins = np.arange(min(entries), max(entries) + binwidth, binwidth)
+    
+    # Plot Histogram
+    pl.hist(entries, bins = define_bins, density=True, color = "skyblue", ec="black", lw=1, label=r'$d^*$ value')
+
+    # Format legend
+    patch = []
+    handles, labels = ax.get_legend_handles_labels()
+    patch.append(mpatches.Patch(color='none', label=r"$\bar{x}$ = " + "{:.3f}".format(np.mean(entries))))
+    patch.append(mpatches.Patch(color='none', label=r"$\sigma$ = {:.3f}".format(np.std(entries))))
+    patch.append(mpatches.Patch(color='none', label=r"N= {}".format(len(entries))))
+    
+    for x in patch:
+        handles.append(x)
+    
+    plt.legend(handles = handles, loc='best')
+
+    # Save result to sys.argv[2]
+    pl.savefig(f"{savelocation}", bbox_inches='tight' ) 
 
 if __name__ == '__main__':
-    try:
-        main(sys.argv[1])
-    except:
-        print("Supply file to analyse in commandline arguement")
-        exit()
+    # try:
+    main(sys.argv[1], sys.argv[2])
+    # except:
+    #     print(f"Usage: {sys.argv[0]} <datafile> <savefile>")
+    #     exit()
