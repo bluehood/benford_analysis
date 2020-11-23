@@ -439,19 +439,24 @@ def finite_range_benford_distribution(mode, data):
     #Finite range calculation
     if mode == -1:
         P = []
-        try:
-            #input lower limit
-            lowerlimit = int(input("Lower Limit: "))
-            #input upper limit
-            upperlimit = int(input("Upper Limit: "))
-        except:
-            print("Please type an integer as input.")
-            exit()
+        # try:
+        #     #input lower limit
+        #     lowerlimit = int(input("Lower Limit: "))
+        #     #input upper limit
+        #     upperlimit = int(input("Upper Limit: "))
+        # except:
+        #     print("Please type an integer as input.")
+        #     exit()
 
-        #Check that the limits make sense
-        if lowerlimit >= upperlimit:
-            print("Please ensure that the lower limit is less than the upper limit.")
-            exit()
+        # #Check that the limits make sense
+        # if lowerlimit >= upperlimit:
+        #     print("Please ensure that the lower limit is less than the upper limit.")
+        #     exit()
+
+        # Calculate upperlimit
+        data_float = [ float(x) for x in data ]
+        lowerlimit = min(data_float)
+        upperlimit = max(data_float)
 
         #First digit finite range analysis
         digit_observed, size = refine_first_digit_finite_range(int(lowerlimit), int(upperlimit), data)
