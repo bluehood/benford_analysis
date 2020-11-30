@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import sys
 import math
 import matplotlib.pyplot as plt
@@ -23,7 +23,7 @@ def roundup(x):
 
 # print the usage for the program.
 def usage():
-    print("Analyse data and verify conformity with the Benford Distribution. The output includes several goodness-of-fit tests for the data. Commandline argument required are to the text file containing raw data to analyse, the mode of analysis (see below) and the location to save plotted data.\n\n    python3 benford.py <filename> <mode (numeric)> <plot_filename>\n\nModes:\n 0 - First Digit\n 1 - First-Second Digit\n 2 - First-Second Digit with heatmap")
+    print("Analyse data and verify conformity with the Benford Distribution. The output includes several goodness-of-fit tests for the data. Commandline argument required are to the text file containing raw data to analyse, the mode of analysis (see below) and the location to save plotted data.\n\n    python3 benford.py <filename> <mode (numeric)> <plot_filename>\n\nModes:\n -1 - First Digit Finite Range \n 0 - First Digit\n 1 - First-Second Digit\n 2 - First-Second Digit with heatmap\n 3 - Second Digit")
     return(0)
 
 
@@ -72,7 +72,7 @@ def input_numbers(input_filename):
 
     input_data_sanitised = input_data
 
-    for x in range(0,len(input_data) - 1):
+    for x in range(0, len(input_data)):
         input_data_sanitised[x] = input_data[x].replace('.','')
         while input_data_sanitised[x][0] == "0":
                 input_data_sanitised[x] = input_data_sanitised[x][1:]
@@ -130,7 +130,7 @@ def output_first_digit_test(digit_occurance, benford_occurance, z_stat):
         line += z_stat[x] + "\\\\"
         print(line)
 
-    #Calaculate the sum of Benford Distribution - ensure it equals 100!
+    #Calaculate the sum of Benford Distribution 
     print("")
     expected_sum = 0
 
@@ -428,7 +428,7 @@ def benford_distribution(mode, size):
                 benford_frequency_first_second_digit.append(math.log10(x + (y+1)/10) - math.log10(x + y/10))
 
         for x in range(0, len(benford_frequency_first_second_digit)):
-            print(int(str(x + 10)[1]))
+            # print(int(str(x + 10)[1]))
             benford_frequency_second_digit[int(str(x + 10)[1])] += benford_frequency_first_second_digit[x]
 
         return(benford_frequency_second_digit)
@@ -457,6 +457,7 @@ def finite_range_benford_distribution(mode, data):
         data_float = [ float(x) for x in data ]
         lowerlimit = min(data_float)
         upperlimit = max(data_float)
+        print(lowerlimit, upperlimit)
 
         #First digit finite range analysis
         digit_observed, size = refine_first_digit_finite_range(int(lowerlimit), int(upperlimit), data)
@@ -693,7 +694,7 @@ def compute_von_mises(expected_list, observed_list, benford_probability, size):
     #Compute A^2
     summation = 0
     for j in range(0, len(Z) - 1):
-        print(H[j])
+        
         if (H[j] * (1 - H[j])) == 0:
             continue
             
@@ -1121,12 +1122,12 @@ def main(mode):
     try:
         int(mode)
     except:
-        print("[Fatal Error] Cannot process mode", str(mode), ".Please enter a valid mode of analysis.")
+        print("[Fatal Error] Cannot process mode", str(mode), ". Please enter a valid mode of analysis.")
         usage()
         exit()
 
     if mode < -1 or mode > 3:
-        print("[Fatal Error] Cannot process mode", str(mode), ".Please enter a valid mode of analysis.")
+        print("[Fatal Error] Cannot process mode", str(mode), ". Please enter a valid mode of analysis.")
         usage()
         exit()
 
