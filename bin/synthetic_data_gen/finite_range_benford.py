@@ -9,12 +9,229 @@ from matplotlib import gridspec
 import matplotlib.patches as mpatches
 from matplotlib import ticker
 from subprocess import call
+from sigfig import round
 
 
 def usage():
     print(sys.argv[0], "file_to_test", "mode", "figure_filename", "lower_limit", "upper_limit")
     print("\nModes:\n 1    Second Digit Finite Range")
     return(0)
+
+
+def remove_leading_zeros_dots(foo):
+    # local variable
+    index = 0
+
+    # if foo is null ignore it 
+    if foo == '':
+        return(0)
+
+    # return most significant bits without decimal points (not needed now)
+    for j in range(0, len(foo)):
+        if foo[j] in ['0', '.']:
+            index += 1
+        else:
+            break
+
+    return(foo[index:].replace('.', ''))
+
+### ---------------------------------- GOF TESTS --------------------------------------------- ###
+
+
+
+
+
+
+#Calculate Z statistic
+def compute_z_statistic(p, p_zero, N):
+    numerator = 0
+    denominator = 0
+    
+    numerator = abs(p - p_zero) - (1 / (2*N))
+    denominator = math.sqrt((p_zero * (1 - p_zero)) / N)
+    try:
+        return(float(numerator / denominator))
+    except:
+        return(0)
+
+#Calculate X^2 statistic
+def compute_chi_squared_statistic(expected_list, actual_list):
+    #Multiply by the total to achieve and approximation of the actual and expected observations
+    chi = 0
+    for x in range(0, len(expected_list)):
+        entry = (float(expected_list[x]) - float(actual_list[x])) ** 2
+        entry = entry / (expected_list[x])
+        chi += entry
+
+    return_value = [chi, chi/8]
+
+    return(return_value)
+
+#Calculate KS statistic
+def compute_ks_statistic(expected_list, actual_list, size):
+    '''https://towardsdatascience.com/when-to-use-the-kolmogorov-smirnov-test-dd0b2c8a8f61
+    http://people.cs.pitt.edu/~lipschultz/cs1538/prob-table_KS.pdf
+    Critical Values: https://www.jstor.org/stable/pdf/2284444.pdf?refreqid=excelsior%3A75be83116d56691079b7426f31618ba3
+    '''
+    #Note expected_list are percentages at this point
+    
+    #Compute the cdf for the observed frequency 
+    actual_cdf = []
+    for x in range(0, len(actual_list)):
+        r = 0
+        for y in range(0, x + 1):
+            r += actual_list[y] / size
+        actual_cdf.append(r)
+
+    #Compute expected cdf
+    expected_cdf = []
+    for x in range(0, len(expected_list)):
+        r = 0
+        for y in range(0, x + 1):
+            r += expected_list[y]
+        expected_cdf.append(r)
+
+    #Compute differences in cdf's
+    cdf_diff_abs = []
+
+    for x in range(0, len(actual_cdf)):
+        difference = abs(actual_cdf[x] - expected_cdf[x])
+        cdf_diff_abs.append(difference)
+
+    cdf_diff_abs.sort()
+
+    return(cdf_diff_abs[-1])
+
+#Calculate CM statistics
+def compute_von_mises(expected_list, observed_list, benford_probability, size):
+    #Compute cdf for expected and observed outcomes NOT normalised
+    observed_cdf = []
+    for x in range(0, len(observed_list)):
+        r = 0
+        for y in range(0, x + 1):
+            r += observed_list[y] 
+        observed_cdf.append(r)
+
+    expected_cdf = []
+    for x in range(0, len(expected_list)):
+        r = 0
+        for y in range(0, x + 1):
+            r += expected_list[y]
+        expected_cdf.append(r)
+
+    #Compute Z_j, Z_bar and H_j
+    Z = []
+    for x in range(0, len(observed_cdf)):
+        Z.append(observed_cdf[x] - expected_cdf[x])
+
+    Z_bar = 0
+    for x in range(0, len(Z)):
+        Z_bar += Z[x] * benford_probability[x]
+
+    H = []
+    for x in range(0, len(expected_cdf)):
+        H.append(expected_cdf[x] / size)
+
+    #Compute W^2
+    summation = 0
+    for j in range(0, len(Z)):
+        summation += (Z[j] ** 2) * benford_probability[j]
+
+    W_squared = (1/size) * summation
+
+    #Compute U^2
+    summation = 0
+    for j in range(0, len(Z)):
+        summation += ((Z[j] - Z_bar) ** 2) * benford_probability[j]
+
+    U_squared = (1/size) * summation
+
+    #Compute A^2
+    summation = 0
+    for j in range(0, len(Z) - 1):
+        
+        if (H[j] * (1 - H[j])) == 0:
+            continue
+            
+        else:
+            summation += ((Z[j] ** 2) * benford_probability[j]) / (H[j] * (1 - H[j]))
+
+    A_squared = (1/size) * summation
+
+
+    #Catogrise signifcance levels
+    #W^2
+    if W_squared >= 0.461 and W_squared < 0.743:
+        W_squared = str('{:.3f}'.format(W_squared)) + " *"
+    elif W_squared >= 0.743:
+        W_squared = str('{:.3f}'.format(W_squared)) + " **"
+    else:
+        W_squared = str('{:.3f}'.format(W_squared))
+
+    #U^2
+    if U_squared >= 0.187 and U_squared < 0.268:
+        U_squared = str('{:.3f}'.format(U_squared)) + " *"
+    elif U_squared >= 0.268:
+        U_squared = str('{:.3f}'.format(U_squared)) + " **"
+    else:
+        U_squared = str('{:.3f}'.format(U_squared))
+
+    #A^2
+    if A_squared >= 2.492 and A_squared < 3.88:
+        A_squared = str('{:.3f}'.format(A_squared)) + "\enspace(*)"
+    elif A_squared >= 3.88:
+        A_squared = str('{:.3f}'.format(A_squared)) + "\enspace(**)"
+    else:
+        A_squared = str('{:.3f}'.format(A_squared))
+
+
+
+    #Format return parameter
+    return_value = ["W^2={},".format(W_squared), "U^2={},".format(U_squared), "A^2={}".format(A_squared)]
+
+    return(return_value)
+    
+#compute d* statistic 
+def compute_dstar(p, b, size):
+    #compute maximum value of d
+    d_max = 0
+    for x in range(0, len(b)):
+        if x != 8:
+            d_max += b[x] ** 2
+        else:
+            d_max += (p[x] - b[x]) ** 2
+
+    d_max  = math.sqrt(d_max)
+
+    #compute d*
+    d_star = 0
+    for x in range(0, len(b)):
+        d_star += (p[x] - b[x]) ** 2
+
+    d_star_morrow = d_star
+    d_star = math.sqrt(d_star)
+    d_star_norm = d_star / d_max
+
+    #Morrow's d* statistic
+    d_star_morrow = size * d_star_morrow
+    d_star_morrow = math.sqrt(d_star_morrow)
+
+    #Compute confidence levels for Morrow's d* test
+    if d_star_morrow >= 1.330 and d_star_morrow < 1.596:
+        d_star_morrow = str(format('{:.3f}'.format(d_star_morrow))) + "\enspace(*)"
+    elif d_star_morrow >= 1.596:
+        d_star_morrow = str(format('{:.3f}'.format(d_star_morrow))) + "\enspace(**)"
+    else:
+        d_star_morrow = str(format('{:.3f}'.format(d_star_morrow)))
+
+    d_test = []
+    d_test.append(str(d_star_norm))
+    d_test.append(r'd*={}'.format(str(d_star_morrow)))
+    d_test.append(" (Morrow)")
+
+    return(d_test)
+
+
 
 
 
@@ -42,7 +259,9 @@ def input_data_from_file(input_filename):
     except:
         del input_data[0]
 
-    #Remove all null values and leading zeros. Add trailing zero to any entry of length 1. Save this result in input_data_sanitised
+    # Remove all null values and leading zeros. Convert to a float w/ 3dp to account for COMPUSTAT data. 
+    # We will later normalise all data to this convention
+    # Save this result in input_data_sanitised
     print("[Debug] Sanitising Input Data")
 
     try:
@@ -54,7 +273,8 @@ def input_data_from_file(input_filename):
     input_data_sanitised = input_data
 
     for x in range(0, len(input_data)):
-        input_data_sanitised[x] = '{:.3f}'.format(float(input_data[x]))
+        input_data_sanitised[x] = str(input_data[x])
+        # input_data_sanitised[x] = str(int(int(input_data_sanitised[x].replace('.', '')) / 1000))
         # while input_data_sanitised[x][0] == "0":
         #         input_data_sanitised[x] = input_data_sanitised[x][1:]
         #         if input_data_sanitised[x] == '':
@@ -63,9 +283,13 @@ def input_data_from_file(input_filename):
         #     input_data_sanitised[x] = input_data_sanitised[x] + "0"
 
     # Remove all null entries from input_data_sanitised
+    
     input_data_sanitised = ' '.join(input_data_sanitised).split()
+    # print(input_data_sanitised)
     print("[Debug] Input Data Sanitised Successfully")  
     return(input_data_sanitised) 
+
+
 
 
 
@@ -80,8 +304,8 @@ def output_second_digit_test(digit_occurance, benford_occurance, z_stat):
     digit_frequency = []
     benford_frequency = []
     for x in range(0,len(digit_occurance)):
-        digit_frequency.append(str(int(digit_occurance[x])))
-        benford_frequency.append(str(int(benford_occurance[x])))
+        digit_frequency.append(str(round(digit_occurance[x])))
+        benford_frequency.append(str(round(benford_occurance[x])))
         z_stat[x] = '{:.3f}'.format(z_stat[x])
 
     #Identify significant deviations based on Z statistic. 
@@ -91,15 +315,15 @@ def output_second_digit_test(digit_occurance, benford_occurance, z_stat):
         elif float(z_stat[x]) >= 2.576:
             z_stat[x] = z_stat[x] + " **"
     
-    print("Digit        Expected Distribution Occurance        Observed Distribution Occurance        Z-Statistic")
+    print("Digit        Observed Distribution Occurance        Synthetic Distribution Occurance        Z-Statistic")
     print("-----------------------------------------------------------------------------------------------")
 
     #write results to the file with table formats. 
     for x in range(0,len(z_stat)):
         line = ""
-        line = str(x + 1) + '&' + " " * (8 + len("Digit") - len(str(x + 1)) - 1)
-        line += benford_frequency[x] + '&' + " " * (8 + len("Expected Distribution Occurance") - len(benford_frequency[x]) - 1)
-        line += '{:.0f}'.format(float(digit_frequency[x])) + '&' + " " * (8 + len("Observed Distribution Occurance") - len('{:.0f}'.format(float(digit_frequency[x]))) - 1)
+        line = str(x) + '&' + " " * (8 + len("Digit") - len(str(x)) - 1)
+        line += benford_frequency[x] + '&' + " " * (8 + len("Synthetic Distribution Occurance") - len(benford_frequency[x]))
+        line += digit_frequency[x] + '&' + " " * (8 + len("Observed Distribution Occurance") - len(digit_frequency[x]))
         line += z_stat[x] + "\\\\"
         print(line)
 
@@ -114,113 +338,149 @@ def output_second_digit_test(digit_occurance, benford_occurance, z_stat):
     print(line)
     return(0)
 
-
-def second_digit_analysis(set_to_test):
+def second_digit_analysis(set_to_test, lower_lim, upper_lim):
+    # local occurence variable
     occurence = [0] * 10
-
+    
+    # loop through local set_to_test and calculate second digit finite range occurence
     for x in range(0, len(set_to_test)):
+        #print(int(set_to_test[x]), len(set_to_test))
         try:
-            occurence[int(set_to_test[x][1])] += 1
-        except:
-            pass
+            # determine whether current entry in finite range
+            if lower_lim <= float(set_to_test[x]) and upper_lim >= float(set_to_test[x]):
+                # extract significant bits of data
+                sanitised_entry = remove_leading_zeros_dots(set_to_test[x])
+                # ignore entries that do not have at least 2 sig figs
+                if len(sanitised_entry) >= 2:
+                    # add to local occurence variable
+                    occurence[int(sanitised_entry[1])] += 1
+
+        except Exception as e: print(e)
     
     return(occurence)
 
-def second_digit_test(input_data):
+def second_digit_test(input_data_raw, benford_distribution_expectation):
     #Calculate the frequency of each character {0,1,2,...,9} in the second digit. 
     print("[Debug] Calculating first digit frequency")
     digit_frequency = [0] * 10
-    first_digit = 0
-    for x in input_data:
+    second_digit = 0
+    for x in input_data_raw:
         try:
-            first_digit = int(x[1])
+            second_digit = int(x[1])
+            digit_frequency[second_digit] += 1
         except:
             #account for single digit values
             continue
-        digit_frequency[first_digit] += 1
+        
 
     #Convert frequncies to percentage expressed as a decimal. 
     print("[Debug] Converting to percentages")
     digit_frequency_percent = [0] * 10
 
     for x in range(0, len(digit_frequency)):
-        digit_frequency_percent[x] = float(digit_frequency[x] / len(input_data))
+        digit_frequency_percent[x] = float(digit_frequency[x] / len(input_data_raw))
 
-    #Calcuate perfect Benford distribution.
-    print("[Debug] Computing ideal Benford frequency")
-    benford_frequency_percent = benford_distribution(3, 0)
-    
     #Compute Benford distribution for data of length equal to dataset
-    benford_frequency = []
+    benford_raw = []
 
-    for x in benford_frequency_percent:
-        benford_frequency.append(round(x * len(input_data)))
+    for x in benford_distribution_expectation:
+        benford_raw.append(float(x * len(input_data_raw)))
 
     #Compute Z statistic for this data:
     print("[Debug] Computing Z statistic")
     z_stat = []
     for x in range(0, len(digit_frequency)):
-        z_stat.append(compute_z_statistic(digit_frequency_percent[x], benford_frequency_percent[x], len(input_data)))
+        z_stat.append(compute_z_statistic(digit_frequency_percent[x], benford_distribution_expectation[x], len(input_data_raw)))
 
     #Compute von-mises statistics
-    von_mises_stat = compute_von_mises(benford_frequency, digit_frequency, benford_frequency_percent, len(input_data))
+    von_mises_stat = compute_von_mises(benford_raw, digit_frequency, benford_distribution_expectation, len(input_data_raw))
 
     #Compute d* statistic
-    d_star_stat = compute_dstar(digit_frequency_percent, benford_frequency_percent, len(input_data))
+    d_star_stat = compute_dstar(digit_frequency_percent, benford_distribution_expectation, len(input_data_raw))
 
-    return(digit_frequency, benford_frequency, digit_frequency_percent, benford_frequency_percent, z_stat, von_mises_stat, d_star_stat)
-
-
+    return(digit_frequency, benford_raw, digit_frequency_percent, benford_distribution_expectation, z_stat, von_mises_stat, d_star_stat)
 
 
-### --------------------------------------- Generate Synthetic Benford Set --------------------------------------------- ###
+
+
+### --------------------------------------- Generate and Import Synthetic Benford Set --------------------------------------------- ###
 
 
 def generate_benford_set_from_c_program(lower, upper, size_set):
     call(["generate_benford", "/tmp/generate_benford_output.txt", str(size_set), str(lower), str(upper)])
     return(0)
 
-def import_process_benford_set(size_set):
+def import_process_benford_set(size_set, lower, upper):
+    # Location of saved benford set 
     filename = "/tmp/generate_benford_output.txt"
+    # local variables
     benford_set_raw = []
     benford_set_counts = [0] * 10
-    # open the file for reading
+    return_size = 0
+
+    # open file for reading
     filehandle = open(filename, 'r')
-    i = 0
-    while True:
-        # read a single line
+
+    for i in range(0, size_set + 1):
+        # read a single line and append to benford_set_raw
         line = filehandle.readline()
-        benford_set_raw.append(line)
 
-        if i % 10000 == 0:
-            observed_counts = second_digit_analysis(benford_set_raw)
+        # check that the line is not empty
+        if line != '':
+            benford_set_raw.append(line)
+        
+        # every 10000 lines determine second digit occurence of Benford subset in finite range
+        if i % 10000 == 0 and i != 0:
+            # print(benford_set_raw)
+            # exit()
+            observed_counts = second_digit_analysis(benford_set_raw, lower, upper)
+            # print(observed_counts)
+
+            # calculate local number of entries in finite range
+            for j in observed_counts:
+                return_size += j
+
+            # add to global count of second digits
             for x in range(0, len(benford_set_counts)):
                 benford_set_counts[x] += observed_counts[x]
-
+            
+            # set local counts to zero
             benford_set_raw = []
-        
+            continue
+
+        # analyses remaining entries. Determine second digit occurence of Benford subset in finite range
         if i == size_set:
-            observed_counts = second_digit_analysis(benford_set_raw)
+            observed_counts = second_digit_analysis(benford_set_raw, lower, upper)
+            # print(len(observed_counts))
+
+             # calculate local number of entries in finite range
+            for j in observed_counts:
+                return_size += j
+
+            # add to global count of second digits and exit for loop
             for x in range(0, len(benford_set_counts)):
                 benford_set_counts[x] += observed_counts[x]
-
             break
-        
-        i += 1
-   
     
+    # close the file handle
     filehandle.close()
-
-    print(benford_set_counts)
-    total = 0
-    for x in benford_set_counts:
-        total += x
-    print("total", total)
     
-    return(0)
+    # verify corrrect normalisation
+    print(f"[Debug] Size of benford set in range [{lower}, {upper}] is {return_size}")
+    total = 0
+    for z in benford_set_counts:
+        total += z / return_size
+
+    print(f"[Test] Normalisation (should be one) {total}")
+
+    # return synthetic finite range 
+    return([float(y / return_size) for y in benford_set_counts])
 
 
 ### --------------------------------------- Cut data in specific range. --------------------------------------------- ###
+
+
+
 
 def cut_data_range(lowerbound, upperbound, dataset):
     #Compute data in finite range
@@ -240,59 +500,189 @@ def cut_data_range(lowerbound, upperbound, dataset):
 
 
 
+
+### ---------------------------------- PLOT DATA --------------------------------------------- ###
+
+
+
+
+
+def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar, mode):
+    #increase font size
+    plt.rcParams.update({'font.size': 12})
+
+    #Compute errors
+    yerror = []
+    for x in range(0, len(frequency)):
+        yerror.append(math.sqrt(benford_freq[x]))
+
+    #normalised residuals and colours
+    difference = []
+    y_colours = []
+    for x in range(0, len(yerror)):
+        if yerror[x] == 0:
+            yerror[x] =1
+        difference.append((frequency[x] - benford_freq[x]) / yerror[x])
+        if abs(difference[x]) > 1:
+            y_colours.append('firebrick')
+        else:
+            y_colours.append('green')
+
+    #Output as histogram
+    
+    ind = np.arange(0, 10, 1)
+    width = 0.7
+
+    fig = plt.figure(figsize=(8, 6))
+    gs = gridspec.GridSpec(2,1, height_ratios=[3,1])
+    ax0 = plt.subplot(gs[0])
+    
+    ax0.errorbar(bins, benford_freq, yerr=yerror, label="Synthetic Occurrence", color='black', marker='x', fmt='x', capsize=3, elinewidth=1, zorder=1)
+    ax0.bar(ind, frequency, width, color='grey', label="Observed Occurrence", zorder=-1)
+
+    plt.xlabel("Digit Value")
+    plt.ylabel("Observed Occurence")
+    plt.xticks(ind, "")
+    
+    patch = []
+    handles, labels = ax0.get_legend_handles_labels()
+    patch.append(mpatches.Patch(color='green', label=r'$|\sigma|$ < 1'))
+    patch.append(mpatches.Patch(color='firebrick', label=r'$|\sigma|$ > 1'))
+    #patch.append(mpatches.Patch(color='white', label=r'${}$'.format(von_mises)))
+    patch.append(mpatches.Patch(color='none', label=r'${}$, $N={}$'.format(dstar, str(dataset_size))))
+    #patch.append(mpatches.Patch(color='white', label=r'$N = {}$'.format(str(dataset_size))))
+
+    for x in patch:
+        handles.append(x)
+
+    plt.legend(handles=handles, loc='best')
+    
+    plt.subplots_adjust(hspace=0)
+
+    #Second (smaller) subplot
+    #Calculate y ticks
+    y_range = 0
+    for x in difference: 
+        if abs(x) >= y_range:
+            y_range = math.ceil(abs(x))
+
+    
+    #Begin plotting
+    ax1 = plt.subplot(gs[1])
+    ax1.bar(ind, difference, 0.70, color=y_colours)
+
+    plt.xticks(ind, bins)
+    
+
+    #format spacing on graph
+
+    if y_range > 2 and y_range <= 3:
+        plt.yticks((-y_range + 1, 0, y_range - 1))
+    elif y_range > 3 and y_range <= 6:
+        plt.yticks((-y_range + 1, 0, y_range - 1))
+        #y_range = y_range + 1
+    elif y_range > 6:
+        plt.yticks((-y_range + 3, 0, y_range - 3))
+        #y_range = y_range + 2
+    ax1.set_ylim([-y_range,y_range])
+
+    
+    plt.xlabel("Second Digit Value")
+    plt.ylabel("Normalised Residual")
+    plt.ylim(-y_range - 0.75, y_range + 0.75) 
+
+    #format graph in general
+    plt.axhline(linewidth=0.5, color='black')
+    plt.axhline(y=1, linewidth=0.75, color='black', linestyle='--')
+    plt.axhline(y=-1, linewidth=0.75, color='black', linestyle='--')
+    #plt.legend(handles=legend_elements, loc='best')
+    fig.align_ylabels()
+    print('[Debug] Saving Plot as {}'.format(sys.argv[3]))
+    plt.savefig('{}'.format(sys.argv[3]), bbox_inches='tight')
+    return(0)
+
+
+
 ### --------------------------------------- Main --------------------------------------------- ###
 
 
 def main(mode):
     # Import test data
-    filename = sys.argv[1]
-    test_data = input_data_from_file(filename)
-    print(f"[Debug] Imported test set from {filename}")
+    test_data = input_data_from_file(sys.argv[1])
+    print(f"[Debug] Imported test set from {sys.argv[1]}")
     print(f"[Debug] Reduce to range specified by the user.")
     
-    # Select data in specific range 
-    test_data = cut_data_range(float(sys.argv[4]), float(sys.argv[5]), test_data)
+    # Select data in specific range. Obtain lower/upper limit form cli arguements
+    lowerlimit = int(sys.argv[4])
+    upperlimit = int(sys.argv[5])
+    test_data = cut_data_range(lowerlimit, upperlimit, test_data)
 
-    print("[Debug] Calculating lower and upper magnitude of the test set")
-    # Calculate min and max of test_data
-    float_test_data = sorted(test_data, key=float)
-    try:
-        float_test_data.remove('0.0000')
-    except:
-        pass
+    # print("[Debug] Calculating lower and upper magnitude of the test set")
+    # # Calculate min and max of test_data
+    # float_test_data = sorted(test_data, key=float)
+    # try:
+    #     float_test_data.remove('0.0000')
+    # except:
+    #     pass
+
+    # # normalise wrt to c program output
+    # test_data_normalised = [int(int(i.replace('.','')) / 1000) for i in float_test_data]
+    # # print(test_data_normalised)
     
-    # normalise wrt to c program output
-    test_data_normalised = [int(i.replace('.','')) for i in float_test_data]
-    
-    # calculate lower/upper limit of normalised set
-    lowerlimit = int(test_data_normalised[0])
-    upperlimit = float(test_data_normalised[-1])
+    # print(f"{lowerlimit} {upperlimit}")
 
-    print(f"{lowerlimit} {upperlimit}")
-
-    #convert to standard form
+    # Convert limits to standard form
     lower = '{:e}'.format(lowerlimit)
     upper = '{:e}'.format(upperlimit)
 
-    #calculate lower magnitude and upper magnitude
-    lower_mag = int(str(lower).split('e')[1])
-    upper_mag = int(str(upper).split('e')[1])
+    # Calculate lower magnitude and upper magnitude from standard form. +1 for off-by-one-error
+    lower_mag = int(str(lower).split('e')[1]) + 1
+    upper_mag = int(str(upper).split('e')[1]) + 1
+    print(f"{lower_mag} < x < {upper_mag}")
 
-    upper_mag += 1
-    lower_mag += 1
-
-    # generate synthetic Benford set
-    size = 100000
-    print("[Debug] Generating Benford set. This could take a while zzz")
+    # generate synthetic Benford set of a given size
+    size = 1000000
+    print(f"[Debug] Generating Benford set of size {size}. This could take a while zzz")
+    #exit()
     generate_benford_set_from_c_program(lower_mag, upper_mag, size)
-    import_process_benford_set(size)
 
+    # Compute the expected distribution from the imported Benford set in our range
+    beford_distribution_expectation = import_process_benford_set(size, lowerlimit, upperlimit)
+    print(f"[Test] Benford Expectation Values {beford_distribution_expectation}")
+    
+    # Perfrom Second Digit test
+    test_data_raw, benford_data_raw, test_data_expectation, benford_data_expectation, z_statistic, von_mises_statistic, d_star_statistic = second_digit_test([str(y) for y in test_data], beford_distribution_expectation)
 
+    # print(test_data_raw, "\n", benford_data_raw)
+    
+    # setup data to plot
+    bins_to_plot = []
+    for x in range(0, 10):
+        bins_to_plot.append(x)
+
+    # output second digit test and statistics
+    output_second_digit_test(benford_data_raw, test_data_raw, z_statistic)
+    print("Cramer-von Mises test: {} {} {}".format(von_mises_statistic[0],von_mises_statistic[1],von_mises_statistic[2]))
+    print("d* test: {}, {}{}".format(d_star_statistic[0], d_star_statistic[1], d_star_statistic[2]))
+    #Legend significance levels
+    print("\n * significant at the .05 level\n** significant at the .01 level\n")
+
+    #Output plot
+    print("[Debug] Generating Plot of the data.")
+    plot_bar_chart(bins_to_plot, test_data_raw, benford_data_raw, len(test_data) , von_mises_statistic[2], d_star_statistic[1], 3)
+
+    print("[Debug] Output complete. Exiting.")
+    exit()
 
     return(0)
 
 
 if __name__ == '__main__':
+    # print(remove_leading_zeros_dots('11.333'))
+    # print(remove_leading_zeros_dots('0.077'))
+    # print(remove_leading_zeros_dots('.083'))
+    # print(remove_leading_zeros_dots('1200'))
+    # print(remove_leading_zeros_dots(''))
     if len(sys.argv) != 6:
         usage()
         exit()
