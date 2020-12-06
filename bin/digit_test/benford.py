@@ -12,7 +12,7 @@ from matplotlib import ticker
 
 
 
-### ---------------------------------- Random --------------------------------------------- ###
+### --------------------------------------- RANDOM --------------------------------------------- ###
 
 
 
@@ -23,7 +23,7 @@ def roundup(x):
 
 # print the usage for the program.
 def usage():
-    print("Analyse data and verify conformity with the Benford Distribution. The output includes several goodness-of-fit tests for the data. Commandline argument required are to the text file containing raw data to analyse, the mode of analysis (see below) and the location to save plotted data.\n\n    python3 benford.py <filename> <mode (numeric)> <plot_filename>\n\nModes:\n -1 - First Digit Finite Range \n 0 - First Digit\n 1 - First-Second Digit\n 2 - First-Second Digit with heatmap\n 3 - Second Digit")
+    print("Analyse data and verify conformity with the Benford Distribution. The output includes several goodness-of-fit tests for the data. Commandline argument required are to the text file containing raw data to analyse, the mode of analysis (see below) and the location to save plotted data.\n\n    python3 benford.py <filename> <mode (numeric)> <plot_filename>\n\nModes:\n 1f   First Digit Finite Range \n 1    First Digit\n 12   First-Second Digit\n 12h  First-Second Digit with heatmap\n 12hn Normal Residual First-Second Digit with heatmap\n 2    Second Digit")
     return(0)
 
 
@@ -31,7 +31,7 @@ def usage():
 
 
 
-### ---------------------------------- IMPORT DATA --------------------------------------------- ###
+### --------------------------------------- IMPORT DATA --------------------------------------------- ###
 
 
 
@@ -395,7 +395,7 @@ def second_digit_test(input_data):
 
 
 
-### ---------------------------------- BENDFORD DISTRIBUTIONS--------------------------------------------- ###
+### --------------------------------------- BENDFORD DISTRIBUTIONS--------------------------------------------- ###
 
 
 
@@ -510,7 +510,7 @@ def finite_range_benford_distribution(mode, data):
 
 
 
-### ---------------------------------- FINITE RANGE --------------------------------------------- ##
+### --------------------------------------- FINITE RANGE --------------------------------------------- ##
 
 
 
@@ -580,12 +580,32 @@ def second_digit_finite_range():
 
 
 
-### ---------------------------------- GOF TESTS --------------------------------------------- ###
+### --------------------------------------- GOF TESTS --------------------------------------------- ###
 
 
 
 
 
+
+# Normlasied residuals 
+def compute_normalised_residuals(observed, expected):
+    # Compute errors for expected distribution
+    yerror = []
+    for x in range(0, len(observed)):
+        yerror.append(math.sqrt(expected[x]))
+
+    # Calculate Normalised residuals
+    difference = []
+    y_colours = []
+    for x in range(0, len(yerror)):
+        if yerror[x] == 0:
+            yerror[x] = 0.01
+        difference.append((observed[x] - expected[x]) / yerror[x])
+        if abs(difference[x]) > 1:
+            y_colours.append('firebrick')
+        else:
+            y_colours.append('green')
+    return(difference, y_colours, yerror)
 
 #Calculate Z statistic
 def compute_z_statistic(p, p_zero, N):
@@ -781,7 +801,7 @@ def compute_dstar(p, b, size):
 
 
 
-### ---------------------------------- PLOT DATA --------------------------------------------- ###
+### --------------------------------------- PLOT DATA --------------------------------------------- ###
 
 
 
@@ -793,31 +813,33 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
     #increase font size
     plt.rcParams.update({'font.size': 12})
 
-    #Compute errors
-    yerror = []
-    for x in range(0, len(frequency)):
-        yerror.append(math.sqrt(benford_freq[x]))
+    # #Compute errors
+    # yerror = []
+    # for x in range(0, len(frequency)):
+    #     yerror.append(math.sqrt(benford_freq[x]))
 
-    #normalised residuals and colours
-    difference = []
-    y_colours = []
-    for x in range(0, len(yerror)):
-        if yerror[x] == 0:
-            yerror[x] =1
-        difference.append((frequency[x] - benford_freq[x]) / yerror[x])
-        if abs(difference[x]) > 1:
-            y_colours.append('firebrick')
-        else:
-            y_colours.append('green')
+    # #normalised residuals and colours
+    # difference = []
+    # y_colours = []
+    # for x in range(0, len(yerror)):
+    #     if yerror[x] == 0:
+    #         yerror[x] =1
+    #     difference.append((frequency[x] - benford_freq[x]) / yerror[x])
+    #     if abs(difference[x]) > 1:
+    #         y_colours.append('firebrick')
+    #     else:
+    #         y_colours.append('green')
+
+    difference, y_colours, yerror = compute_normalised_residuals(frequency, benford_freq)
 
     #Output as histogram
     #First (main) subplot
 
-    if mode in [0,-1]:
+    if mode in ['1','f1']:
         ind = np.arange(9)
-    elif mode == 1:
+    elif mode == '12':
         ind = np.arange(10, 100, 1)
-    elif mode == 3:
+    elif mode == '2':
         ind = np.arange(0, 10, 1)
 
     width = 0.7
@@ -827,11 +849,11 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
     gs = gridspec.GridSpec(2,1, height_ratios=[3,1])
     ax0 = plt.subplot(gs[0])
 
-    if mode in [0, -1]:
+    if mode in ['1', '1f']:
         ax0.errorbar(bins, benford_freq, yerr=yerror, label="Expected Occurrence", color='black', marker='x', fmt='x', capsize=3, elinewidth=1, zorder=1)
-    elif mode == 1:
+    elif mode == '12':
         ax0.errorbar(bins, benford_freq, yerr=yerror, label="Expected Occurrence", color='black', marker='.', fmt='x', capsize=2, elinewidth=1, zorder=1)
-    elif mode == 3:
+    elif mode == '2':
         ax0.errorbar(bins, benford_freq, yerr=yerror, label="Expected Occurrence", color='black', marker='x', fmt='x', capsize=3, elinewidth=1, zorder=1)
     
 
@@ -842,13 +864,13 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
     plt.xticks(ind, "")
 
 
-    if mode == 1:
+    if mode == '12':
         #plt.xticks(np.arange(10, 100, 5))
         plt.xlim(9,100)
 
     
     
-    if mode != 3:#Format Legend
+    if mode != '2':#Format Legend
         patch = []
         handles, labels = ax0.get_legend_handles_labels()
         patch.append(mpatches.Patch(color='green', label=r'$|\sigma|$ < 1'))
@@ -900,19 +922,19 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
         #y_range = y_range + 2
     ax1.set_ylim([-y_range,y_range])
 
-    if mode in [0, -1]:
+    if mode in ['1', 'f1']:
         plt.xlabel("First Digit Value")
         plt.ylabel("Normalised Residual")
         plt.ylim(-y_range - 0.75, y_range + 0.75) 
 
-    elif mode == 1:
+    elif mode == '12':
         plt.xlabel("First Two Digit Values")
         plt.ylabel("Normalised Residual")
         plt.ylim(-y_range - 0.75, y_range + 0.75) 
         plt.xticks(np.arange(10, 100, 5))
         plt.xlim(9,100)
 
-    elif mode == 3:
+    elif mode == '2':
         plt.xlabel("Second Digit Value")
         plt.ylabel("Normalised Residual")
         plt.ylim(-y_range - 0.75, y_range + 0.75) 
@@ -929,7 +951,7 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
     return(0)
 
 
-def plot_heat_map(frequency, benford_freq):
+def plot_heat_map(frequency, benford_freq, m):
     #increase font size
     plt.rcParams.update({'font.size': 12})
 
@@ -937,21 +959,41 @@ def plot_heat_map(frequency, benford_freq):
     y_axis = np.arange(1, 11, 1)
     x_axis = np.arange(0, 10, 1)
 
+    
     values_to_plot = []
     row = []
+    
+    # 12 heatmap test non-normalised
+    if m == '12h':
 
-    #Compute absolute difference as numpy array to plot
-    for x in range(1,10):
-        for y in range(0,10):
-            row.append(int(frequency[int(str(x) + str(y)) - 10] - benford_freq[int(str(x) + str(y)) - 10]))
+        #Compute absolute difference as numpy array to plot
+        for x in range(1,10):
+            for y in range(0,10):
+                row.append(int(frequency[int(str(x) + str(y)) - 10] - benford_freq[int(str(x) + str(y)) - 10]))
 
-        array = np.asarray(row)
+            array = np.asarray(row)
 
-        if x == 1:
-            values_to_plot = array
-        else:
-            values_to_plot = np.vstack((values_to_plot, array))
+            if x == 1:
+                values_to_plot = array
+            else:
+                values_to_plot = np.vstack((values_to_plot, array))
+            row = []
+
+    # normalised heatmap
+    elif m == '12hn':
         row = []
+        for x in range(0, len(frequency) - 9, 10):
+            row.append(frequency[x:x + 10])
+            array = np.asarray(row)
+            if x == 0:
+                values_to_plot = array
+            else:
+                values_to_plot = np.vstack((values_to_plot, array))
+            row = []
+    
+    values_to_plot = np.round(values_to_plot, 1)
+    print(values_to_plot)
+            
 
     limit = roundup(max(abs(np.amin(values_to_plot)), np.amax(values_to_plot)))
     
@@ -1114,22 +1156,22 @@ def annotate_heatmap(im, data=None, valfmt="{x}",
     
 
 
-### ---------------------------------- Main() --------------------------------------------- ###
+### --------------------------------------- Main() --------------------------------------------- ###
 
 #main function of the program. 
 def main(mode):
     #Process mode of analysis
     try:
-        int(mode)
+        str(mode)
     except:
         print("[Fatal Error] Cannot process mode", str(mode), ". Please enter a valid mode of analysis.")
         usage()
         exit()
 
-    if mode < -1 or mode > 3:
-        print("[Fatal Error] Cannot process mode", str(mode), ". Please enter a valid mode of analysis.")
-        usage()
-        exit()
+    # if mode < -1 or mode > 3:
+    #     print("[Fatal Error] Cannot process mode", str(mode), ". Please enter a valid mode of analysis.")
+    #     usage()
+    #     exit()
 
 
     #Import data from argv[1]
@@ -1137,20 +1179,20 @@ def main(mode):
     data = input_numbers(filename)
     print("[Debug] Starting First Digit Analysis")
 
-    if mode == 0:
+    if mode == '1':
         data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic = first_digit_test(data)
         bins_to_plot = ['1','2','3','4','5','6','7','8','9']
-    elif mode == 1 or mode == 2:
+    elif mode in ['12', '12h', '12hn']:
         data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic = first_second_digit_test(data)
         bins_to_plot = []
         for x in range(10, 100):
             bins_to_plot.append(x)
-    elif mode == 3:
+    elif mode == '2':
         data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic = second_digit_test(data)
         bins_to_plot = []
         for x in range(0, 10):
             bins_to_plot.append(x)
-    elif mode == -1:
+    elif mode == 'f1':
         data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic, data_size = first_digit_benford_finite_range(data)
         bins_to_plot = ['1','2','3','4','5','6','7','8','9']
 
@@ -1158,20 +1200,27 @@ def main(mode):
     print("[Debug] Analysis complete. Outputing results.")
     print("\n\n###--- Analysis for", filename, "---###\n")
 
-    if mode == 0:
+    # Process the mode of analysis e.g. first digit analysis = 1
+    if mode == '1': # 0
         output_first_digit_test(data_raw, benford_raw, z_statistic)
-    elif mode == 1:
+    elif mode == '12': # 1
         output_first_second_digit_test(data_raw, benford_raw, z_statistic)
-    elif mode == 2:
+    elif mode == '12h': # 2
         output_first_second_digit_test(data_raw, benford_raw, z_statistic)
-        plot_heat_map(data_raw, benford_raw)
+        plot_heat_map(data_raw, benford_raw, '12h')
         exit()
-    elif mode == 3:
+    elif mode == '12hn': # need to calculate normalised residuals 
+        norm_residuals, null, null = compute_normalised_residuals(data_raw, benford_raw)
+        output_first_second_digit_test(data_raw, benford_raw, z_statistic)
+        # plot normalised residuals (already calculated) edit plot_heat_map to include mode
+        plot_heat_map(norm_residuals, None, '12hn')
+        exit()
+    elif mode == '2': # 3
         output_second_digit_test(data_raw, benford_raw, z_statistic)
-    elif mode == -1:
+    elif mode == 'f1': # -1
         output_first_digit_test(data_raw, benford_raw, z_statistic)
 
-    if mode >= 0:
+    if mode != 'f1':
         data_size = len(data)
 
 
@@ -1198,5 +1247,5 @@ if __name__ == '__main__':
         usage()
         exit()
     else:
-        main(int(sys.argv[2]))
+        main(sys.argv[2])
     

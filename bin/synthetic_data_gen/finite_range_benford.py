@@ -640,8 +640,13 @@ def main(mode):
     upper_mag = int(str(upper).split('e')[1]) + 1
     print(f"{lower_mag} < x < {upper_mag}")
 
-    # generate synthetic Benford set of a given size
-    size = 1000000
+    # generate synthetic Benford set of a calculated size
+    size = (len(test_data) * 100) - (len(test_data) * 100 % 1000)
+    if size > 10000000:
+        # print("here")
+        size = 10000000
+
+    print(size)
     print(f"[Debug] Generating Benford set of size {size}. This could take a while zzz")
     #exit()
     generate_benford_set_from_c_program(lower_mag, upper_mag, size)
