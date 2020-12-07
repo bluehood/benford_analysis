@@ -978,6 +978,8 @@ def plot_heat_map(frequency, benford_freq, m):
             else:
                 values_to_plot = np.vstack((values_to_plot, array))
             row = []
+        limit = roundup(max(abs(np.amin(values_to_plot)), np.amax(values_to_plot)))
+        
 
     # normalised heatmap
     elif m == '12hn':
@@ -990,12 +992,13 @@ def plot_heat_map(frequency, benford_freq, m):
             else:
                 values_to_plot = np.vstack((values_to_plot, array))
             row = []
+        
+        limit = math.ceil(max(abs(np.amin(values_to_plot)), np.amax(values_to_plot)))
     
     values_to_plot = np.round(values_to_plot, 1)
     print(values_to_plot)
             
 
-    limit = roundup(max(abs(np.amin(values_to_plot)), np.amax(values_to_plot)))
     
     test = [-limit, limit, limit, limit, limit, limit, limit, limit, limit, limit]
     array = np.asarray(test)
@@ -1005,7 +1008,7 @@ def plot_heat_map(frequency, benford_freq, m):
 
     fig, ax = plt.subplots()
 
-    im, cbar = heatmap(limit, values_to_plot, y_axis , x_axis, ax=ax,
+    im, cbar = heatmap(limit, values_to_plot, y_axis , x_axis, m, ax=ax,
                    cmap="coolwarm", cbarlabel="Deviation")
     texts = annotate_heatmap(im, valfmt="{x}")
 
@@ -1022,8 +1025,7 @@ def plot_heat_map(frequency, benford_freq, m):
 # Credit for the next two functions https://matplotlib.org/3.1.1/gallery/images_contours_and_fields/image_annotated_heatmap.html. These have been mildly edited 
 # to suit the needs of the program. 
 
-def heatmap(limit, data, row_labels, col_labels, ax=None,
-            cbar_kw={}, cbarlabel="", **kwargs):
+def heatmap(limit, data, row_labels, col_labels, mode, ax=None, cbar_kw={}, cbarlabel="", **kwargs):
     """
     Create a heatmap from a numpy array and two lists of labels.
 
@@ -1053,9 +1055,15 @@ def heatmap(limit, data, row_labels, col_labels, ax=None,
     im = ax.imshow(data, **kwargs)
 
     # Create colorbar
-    ticks = []
-    for x in range(-limit, limit + 10, 10):
-        ticks.append(x)
+
+    if mode == '12h':
+        ticks = []
+        for x in range(-limit, limit + 10, 10):
+            ticks.append(x)
+    elif mode == '12hn':
+        ticks = []
+        for x in range(-limit, limit + 1, 1):
+            ticks.append(x)
 
     cbar = ax.figure.colorbar(im, ax=ax, **cbar_kw, ticks=ticks)
     cbar.ax.set_ylim(-limit, limit) 
