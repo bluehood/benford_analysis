@@ -3,7 +3,6 @@ import sys
 
 #usage python3 mean_stdev.py tmp.txt
 
-
 if __name__ == '__main__':
     entries = []
     filename = sys.argv[1]
@@ -16,22 +15,17 @@ if __name__ == '__main__':
             else:
                 entries.append(int(str(x)))
         except:
-            if " " in x or "£" in x or x == '':
-                continue
-            try:
-                entries.append(int(str(x).replace(" ", "")))
-            except:
-                continue
+            # if " " in x or "£" in x or x == '':
+            #     continue
+            # try:
+            #     entries.append(int(str(x).replace(" ", "")))
+            # except:
+            continue
             
 
-    #print(entries)
+    # print(entries)
     mean = statistics.mean(entries)
     st_dev = statistics.stdev(entries)
 
-    if int(st_dev) == 0:
-        st_dev = "-"
-        print(st_dev + "&")
-        exit()
+    print(f'&{mean}&{st_dev}\n')
 
-    #print("Mean=" + str(mean), ":", "s.d.=" + str(st_dev))
-    print(str('{:.3f}'.format(st_dev)) + "&")

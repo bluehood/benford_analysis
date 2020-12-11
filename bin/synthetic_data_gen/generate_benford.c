@@ -3,13 +3,19 @@
 #include <math.h>
 #include <time.h> 
 
-// Usage of the program
+		// Usage of the program
+
 int usage(char* name_of_file)
 {
-	printf("\nUsage: Generate a Benford set of a given size and save to a file.\n\n%s %s %s\n\n", name_of_file, "<size (int)>", "<filename (str)>");
-	printf("This program is designed for single digit analysis and two-digit analysis!\n\n");
+	printf("\nUsage: Generate a Benford set of a given size and save to a file.\n\n%s %s %s %s %s\n\n", name_of_file, "<filename (str)>", "<size (int)>", "<lower magnitude (int)>", "<upper magnitude (int)>");
+	printf("This program is designed to generate synethetic datra for single and multiple digit benford analysis on the first four digits!\n");
+	printf("Lower and upper magnitude must be greater than or equal to four. The output is saved to filename and has size elements. Size must be a multiple of 1,000.\n");
+	printf("This program is designed to run on Linux and has been tested on Ubuntu 18.04 LTS kernel version 5.4.0-51-generic x86_64.\n");
 	return 0;
 }
+
+
+		// Random Number Generation 
 
 // generate a random number between 0 and 1 
 double rand_0_1()
@@ -17,9 +23,20 @@ double rand_0_1()
     return rand() / ((double) RAND_MAX);
 }
 
-// where the magic happens
+		// where the magic happens
+
 void benford(FILE *outfile, int iterate, int lower_limit, int upper_limit)
 {
+	// generate inital random seed from /dev/random 
+	// int seed;
+	// FILE *f;
+	// f = fopen("/dev/random", "r");
+  	// fread(&seed, sizeof(seed), 1, f);
+ 	// fclose(f);
+
+	// use current time to generate seed 
+	srand(time(0));
+
 	// Generate cumlative probability distribution of Benford distribution
 	int cdf_size = 9001;
 	double cdf[cdf_size];
@@ -40,7 +57,7 @@ void benford(FILE *outfile, int iterate, int lower_limit, int upper_limit)
 	int results[1000];
 	for(int i = 0; i < iterate; i++)
 	{
-		// write the list of 1000 numbers to a file; outfile
+		// write the list of 1000 numbers to a file
 		if ((i % 1000) == 0 && (i != 0))
 		{
 			for(int j = 0; j < 1000; j++)
@@ -48,9 +65,10 @@ void benford(FILE *outfile, int iterate, int lower_limit, int upper_limit)
     			fprintf(outfile, "%d\n", results[j]);
 			}
 		}
+		// gen random num between 0 and 1
+		double rand_num = rand_0_1();
 
 		// find a benford number
-		double rand_num = rand_0_1();
 		for (int n = 1; n < 9001; n++) 
 		{
 			if ((cdf[n - 1]  <= rand_num) && (rand_num < cdf[n]))
@@ -75,22 +93,26 @@ void benford(FILE *outfile, int iterate, int lower_limit, int upper_limit)
 	fclose(outfile);
 }
 
-// main function
+		// main function
+
 int main(int argc, char *argv[])  
 {  
 	if(argc != 5)
 	{
-		fprintf(stderr, "Error: incorrect arguments given\n\n");
+		fprintf(stderr, "Error: invalid arguements\n\n");
+		usage(argv[0]);
 		exit(EXIT_FAILURE);
 	}
 	else if(atoi(argv[2]) % 1000 != 0)
 	{
 		fprintf(stderr, "Error: argument specifying number of entries to generate must be a multiple of 1,000\n\n");
+		usage(argv[0]);
 		exit(EXIT_FAILURE);
 	}
 	else if((atoi(argv[3]) - 4) < 0 || (atoi(argv[4]) - 4) < 0)
 	{
 		fprintf(stderr, "Error: arguments specifying upper and lower limit of length must be >= 4\n\n");
+		usage(argv[0]);
 		exit(EXIT_FAILURE);
 	}
 	else
@@ -107,6 +129,7 @@ int main(int argc, char *argv[])
 		if (outfile == NULL)
 		{
 		fprintf(stderr, "Error: couldn't write to output file, potential invalid filename\n\n");
+		usage(argv[0]);
 		exit(EXIT_FAILURE);
 		}
 
@@ -120,9 +143,11 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-// gcc -Wall -Wextra -pedantic  generate_benford_set_first_second_digit_analysis.c -lm -o generate_benford_set_first_second_digit_analysis
+// gcc -Wall -Wextra -pedantic  generate_benford.c -lm -o generate_benford
 
-// ./generate_benford_set_first_second_digit_analysis output.txt 100000 5 9
+// ./generate_benford /home/odestorm/Documents/physics_project/analysis/data/synthetic/output.txt 100000 6 8
+
+// python3 ../digit_test/benford.py /home/odestorm/Documents/physics_project/analysis/data/synthetic/output.txt 1 /home/odestorm/Documents/physics_project/analysis/data/synthetic/figures/output.png
 
 // Console input format: filename, number of entries, lower limit magnitude, upper limit magnitude
 
