@@ -23,7 +23,7 @@ def roundup(x):
 
 # print the usage for the program.
 def usage():
-    print("Analyse data and verify conformity with the Benford Distribution. The output includes several goodness-of-fit tests for the data. Commandline argument required are to the text file containing raw data to analyse, the mode of analysis (see below) and the location to save plotted data.\n\n    python3 benford.py <filename> <mode (numeric)> <plot_filename>\n\nModes:\n 1f   First Digit Finite Range \n 1    First Digit\n 12   First-Second Digit\n 12h  First-Second Digit with heatmap\n 12hn Normal Residual First-Second Digit with heatmap\n 2    Second Digit")
+    print("Analyse data and verify conformity with the Benford Distribution. The output includes several goodness-of-fit tests for the data. Commandline argument required are to the text file containing raw data to analyse, the mode of analysis (see below) and the location to save plotted data.\n\n    python3 benford.py <filename> <mode (numeric)> <plot_filename>\n\nModes:\n f1   First Digit Finite Range \n 1    First Digit\n 12   First-Second Digit\n 12h  First-Second Digit with heatmap\n 12hn Normal Residual First-Second Digit with heatmap\n 2    Second Digit")
     return(0)
 
 
@@ -849,7 +849,7 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
     gs = gridspec.GridSpec(2,1, height_ratios=[3,1])
     ax0 = plt.subplot(gs[0])
 
-    if mode in ['1', '1f']:
+    if mode in ['1', 'f1']:
         ax0.errorbar(bins, benford_freq, yerr=yerror, label="Expected Occurrence", color='black', marker='x', fmt='x', capsize=3, elinewidth=1, zorder=1)
     elif mode == '12':
         ax0.errorbar(bins, benford_freq, yerr=yerror, label="Expected Occurrence", color='black', marker='.', fmt='x', capsize=2, elinewidth=1, zorder=1)
@@ -917,9 +917,12 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
     elif y_range > 3 and y_range <= 6:
         plt.yticks((-y_range + 1, 0, y_range - 1))
         #y_range = y_range + 1
-    elif y_range > 6:
+    elif y_range > 6 and y_range <= 10:
         plt.yticks((-y_range + 3, 0, y_range - 3))
         #y_range = y_range + 2
+    elif y_range > 10:
+        plt.yticks((-y_range/2, 0, y_range/2))
+
     ax1.set_ylim([-y_range,y_range])
 
     if mode in ['1', 'f1']:
@@ -996,7 +999,7 @@ def plot_heat_map(frequency, benford_freq, m):
         limit = math.ceil(max(abs(np.amin(values_to_plot)), np.amax(values_to_plot)))
     
     values_to_plot = np.round(values_to_plot, 1)
-    print(values_to_plot)
+    # print(values_to_plot)
             
 
     
@@ -1058,11 +1061,12 @@ def heatmap(limit, data, row_labels, col_labels, mode, ax=None, cbar_kw={}, cbar
 
     if mode == '12h':
         ticks = []
-        for x in range(-limit, limit + 10, 10):
+        for x in range(-limit, limit, int(limit/6)):
             ticks.append(x)
     elif mode == '12hn':
         ticks = []
-        for x in range(-limit, limit + 1, 1):
+        lim = roundup(limit)
+        for x in range(-lim, lim, 10):
             ticks.append(x)
 
     cbar = ax.figure.colorbar(im, ax=ax, **cbar_kw, ticks=ticks)
