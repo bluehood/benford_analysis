@@ -361,7 +361,7 @@ def second_digit_analysis(set_to_test, lower_lim, upper_lim):
 
 def second_digit_test(input_data_raw, benford_distribution_expectation):
     #Calculate the frequency of each character {0,1,2,...,9} in the second digit. 
-    print("[Debug] Calculating first digit frequency")
+    print("[Debug] Calculating second digit frequency")
     digit_frequency = [0] * 10
     second_digit = 0
     for x in input_data_raw:
@@ -403,6 +403,78 @@ def second_digit_test(input_data_raw, benford_distribution_expectation):
 
 
 
+### --------------------------------------- THIRD DIGIT TEST --------------------------------------------- ###
+
+
+
+
+
+def third_digit_analysis(set_to_test, lower_lim, upper_lim):
+    # local occurence variable
+    occurence = [0] * 10
+    
+    # loop through local set_to_test and calculate third digit finite range occurence
+    for x in range(0, len(set_to_test)):
+        #print(int(set_to_test[x]), len(set_to_test))
+        try:
+            # determine whether current entry in finite range
+            if lower_lim <= float(set_to_test[x]) and upper_lim >= float(set_to_test[x]):
+                # extract significant bits of data
+                sanitised_entry = remove_leading_zeros_dots(set_to_test[x])
+                # ignore entries that do not have at least 2 sig figs
+                if len(sanitised_entry) >= 3:
+                    # add to local occurence variable
+                    occurence[int(sanitised_entry[2])] += 1
+
+        except Exception as e: print(e)
+    
+    return(occurence)
+
+def third_digit_test(input_data_raw, benford_distribution_expectation):
+    #Calculate the frequency of each character {0,1,2,...,9} in the third digit. 
+    print("[Debug] Calculating third digit frequency")
+    digit_frequency = [0] * 10
+    second_digit = 0
+    for x in input_data_raw:
+        try:
+            second_digit = int(x[2])
+            digit_frequency[second_digit] += 1
+        except:
+            #account for single and two digit values
+            continue
+        
+
+    #Convert frequncies to percentage expressed as a decimal. 
+    print("[Debug] Converting to percentages")
+    digit_frequency_percent = [0] * 10
+
+    for x in range(0, len(digit_frequency)):
+        digit_frequency_percent[x] = float(digit_frequency[x] / len(input_data_raw))
+
+    #Compute Benford distribution for data of length equal to dataset
+    benford_raw = []
+
+    for x in benford_distribution_expectation:
+        benford_raw.append(float(x * len(input_data_raw)))
+
+    #Compute Z statistic for this data:
+    print("[Debug] Computing Z statistic")
+    z_stat = []
+    for x in range(0, len(digit_frequency)):
+        z_stat.append(compute_z_statistic(digit_frequency_percent[x], benford_distribution_expectation[x], len(input_data_raw)))
+
+    #Compute von-mises statistics
+    von_mises_stat = compute_von_mises(benford_raw, digit_frequency, benford_distribution_expectation, len(input_data_raw))
+
+    #Compute d* statistic
+    d_star_stat = compute_dstar(digit_frequency_percent, benford_distribution_expectation, len(input_data_raw))
+
+    return(digit_frequency, benford_raw, digit_frequency_percent, benford_distribution_expectation, z_stat, von_mises_stat, d_star_stat)
+
+
+
+
+
 ### --------------------------------------- Generate and Import Synthetic Benford Set --------------------------------------------- ###
 
 
@@ -410,12 +482,14 @@ def generate_benford_set_from_c_program(lower, upper, size_set):
     call(["generate_benford", "/tmp/generate_benford_output.txt", str(size_set), str(lower), str(upper)])
     return(0)
 
-def import_process_benford_set(size_set, lower, upper):
+def import_process_benford_set(size_set, lower, upper, mode):
     # Location of saved benford set 
     filename = "/tmp/generate_benford_output.txt"
     # local variables
     benford_set_raw = []
-    benford_set_counts = [0] * 10
+    if mode in ['2', '3']:
+        benford_set_counts = [0] * 10
+    
     return_size = 0
 
     # open file for reading
@@ -433,14 +507,17 @@ def import_process_benford_set(size_set, lower, upper):
         if i % 10000 == 0 and i != 0:
             # print(benford_set_raw)
             # exit()
-            observed_counts = second_digit_analysis(benford_set_raw, lower, upper)
+            if mode == '2':
+                observed_counts = second_digit_analysis(benford_set_raw, lower, upper)
+            elif mode == '3':
+                observed_counts = third_digit_analysis(benford_set_raw, lower, upper)
             # print(observed_counts)
 
             # calculate local number of entries in finite range
             for j in observed_counts:
                 return_size += j
 
-            # add to global count of second digits
+            # add to global count of digits
             for x in range(0, len(benford_set_counts)):
                 benford_set_counts[x] += observed_counts[x]
             
@@ -457,7 +534,7 @@ def import_process_benford_set(size_set, lower, upper):
             for j in observed_counts:
                 return_size += j
 
-            # add to global count of second digits and exit for loop
+            # add to global count and exit for loop
             for x in range(0, len(benford_set_counts)):
                 benford_set_counts[x] += observed_counts[x]
             break
@@ -581,10 +658,11 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
     elif y_range > 3 and y_range <= 6:
         plt.yticks((-y_range + 1, 0, y_range - 1))
         #y_range = y_range + 1
-    elif y_range > 6:
+    elif y_range > 6 and y_range <= 10:
         plt.yticks((-y_range + 3, 0, y_range - 3))
         #y_range = y_range + 2
-    ax1.set_ylim([-y_range,y_range])
+    elif y_range > 10:
+        plt.yticks((-int(y_range/2), 0, int(y_range/2)))
 
     
     plt.xlabel("Second Digit Value")
@@ -593,8 +671,11 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
 
     #format graph in general
     plt.axhline(linewidth=0.5, color='black')
-    plt.axhline(y=1, linewidth=0.75, color='black', linestyle='--')
-    plt.axhline(y=-1, linewidth=0.75, color='black', linestyle='--')
+
+    if y_range < 10:
+        plt.axhline(y=1, linewidth=0.75, color='black', linestyle='--')
+        plt.axhline(y=-1, linewidth=0.75, color='black', linestyle='--')
+
     #plt.legend(handles=legend_elements, loc='best')
     fig.align_ylabels()
     print('[Debug] Saving Plot as {}'.format(sys.argv[3]))
@@ -603,10 +684,11 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
 
 
 
-### --------------------------------------- Main --------------------------------------------- ###
+### --------------------------------------- MAIN --------------------------------------------- ###
 
 
 def main(mode):
+    mode = str(mode)
     # Import test data
     test_data = input_data_from_file(sys.argv[1])
     print(f"[Debug] Imported test set from {sys.argv[1]}")
@@ -638,32 +720,39 @@ def main(mode):
     # Calculate lower magnitude and upper magnitude from standard form. +1 for off-by-one-error
     lower_mag = int(str(lower).split('e')[1]) + 1
     upper_mag = int(str(upper).split('e')[1]) + 1
-    print(f"{lower_mag} < x < {upper_mag}")
+    # print(f"{lower_mag} < x < {upper_mag}")
 
     # generate synthetic Benford set of a calculated size
-    size = (len(test_data) * 100) - (len(test_data) * 100 % 1000)
+    # size = (len(test_data) * 10) - (len(test_data) * 10 % 1000)
+    size = len(test_data) * 100 - len(test_data) * 100 % 1000
+
     if size > 10000000:
         # print("here")
         size = 10000000
 
-    print(size)
+    # print(size)
     print(f"[Debug] Generating Benford set of size {size}. This could take a while zzz")
     #exit()
     generate_benford_set_from_c_program(lower_mag, upper_mag, size)
 
     # Compute the expected distribution from the imported Benford set in our range
-    beford_distribution_expectation = import_process_benford_set(size, lowerlimit, upperlimit)
+    beford_distribution_expectation = import_process_benford_set(size, lowerlimit, upperlimit, mode)
     print(f"[Test] Benford Expectation Values {beford_distribution_expectation}")
     
-    # Perfrom Second Digit test
-    test_data_raw, benford_data_raw, test_data_expectation, benford_data_expectation, z_statistic, von_mises_statistic, d_star_statistic = second_digit_test([str(y) for y in test_data], beford_distribution_expectation)
+    # Perfrom GFRBL
+    if mode == '2':
+        test_data_raw, benford_data_raw, test_data_expectation, benford_data_expectation, z_statistic, von_mises_statistic, d_star_statistic = second_digit_test([str(y) for y in test_data], beford_distribution_expectation)
+    elif mode == '3':
+        test_data_raw, benford_data_raw, test_data_expectation, benford_data_expectation, z_statistic, von_mises_statistic, d_star_statistic = third_digit_test([str(y) for y in test_data], beford_distribution_expectation)
 
     # print(test_data_raw, "\n", benford_data_raw)
     
     # setup data to plot
     bins_to_plot = []
-    for x in range(0, 10):
-        bins_to_plot.append(x)
+
+    if mode in ['2', '3']:
+        for x in range(0, 10):
+            bins_to_plot.append(x)
 
     # output second digit test and statistics
     output_second_digit_test(benford_data_raw, test_data_raw, z_statistic)

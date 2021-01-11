@@ -13,8 +13,9 @@ def main(open_file, save_file):
     for x in f:
         x = x.replace('\n','')
         if x != '' and int(x) < 0.5 * 10 ** 6 :
-            # if int(x) in [125000, 250000]:
-            #     x = int(x) - 1
+        # if x != '' and int(x) < 0.5 * 10 ** 6 :
+        #     if int(x) in [125000, 250000]:
+        #         x = int(x) - 1
 
             data_to_plot.append(int(x))
     
@@ -30,7 +31,7 @@ def main(open_file, save_file):
     pl.plot(data_to_plot, fit,'--', linewidth=1.5, markersize=0.1, label="Normal Distribution")
     pl.xlabel(r'Price Paid / £ $\times 10^3$', size=12)
     pl.ylabel("Normalised Occurence", size=12)
-    pl.xlim(0, max(data_to_plot))
+    pl.xlim(0, 500000)
 
 
     # Calculate Bins we define the binwidth. Define colour of the bins
