@@ -14,7 +14,8 @@ from sigfig import round
 
 def usage():
     print(sys.argv[0], "file_to_test", "mode", "figure_filename", "lower_limit", "upper_limit")
-    print("\nModes:\n 1    Second Digit Finite Range")
+    print("\nModes:\n 2    Second Digit Finite Range")
+    print("\nModes:\n 3    Third Digit Finite Range")
     return(0)
 
 
@@ -482,6 +483,10 @@ def generate_benford_set_from_c_program(lower, upper, size_set):
     call(["generate_benford", "/tmp/generate_benford_output.txt", str(size_set), str(lower), str(upper)])
     return(0)
 
+def generate_benford_set_from_py_program(lower, upper, size_set):
+    call(["generate_benford_geometric.py", "/tmp/generate_benford_output.txt", str(size_set), str(lower), str(upper)])
+    return(0)
+
 def import_process_benford_set(size_set, lower, upper, mode):
     # Location of saved benford set 
     filename = "/tmp/generate_benford_output.txt"
@@ -497,11 +502,11 @@ def import_process_benford_set(size_set, lower, upper, mode):
 
     for i in range(0, size_set + 1):
         # read a single line and append to benford_set_raw
-        line = filehandle.readline()
+        line = filehandle.readline().replace('\n', '')
 
         # check that the line is not empty
         if line != '':
-            benford_set_raw.append(line)
+            benford_set_raw.append(line.split('.')[0])
         
         # every 10000 lines determine second digit occurence of Benford subset in finite range
         if i % 10000 == 0 and i != 0:
@@ -545,6 +550,9 @@ def import_process_benford_set(size_set, lower, upper, mode):
     # verify corrrect normalisation
     print(f"[Debug] Size of benford set in range [{lower}, {upper}] is {return_size}")
     total = 0
+
+    print(benford_set_counts)
+
     for z in benford_set_counts:
         total += z / return_size
 
@@ -699,20 +707,6 @@ def main(mode):
     upperlimit = int(sys.argv[5])
     test_data = cut_data_range(lowerlimit, upperlimit, test_data)
 
-    # print("[Debug] Calculating lower and upper magnitude of the test set")
-    # # Calculate min and max of test_data
-    # float_test_data = sorted(test_data, key=float)
-    # try:
-    #     float_test_data.remove('0.0000')
-    # except:
-    #     pass
-
-    # # normalise wrt to c program output
-    # test_data_normalised = [int(int(i.replace('.','')) / 1000) for i in float_test_data]
-    # # print(test_data_normalised)
-    
-    # print(f"{lowerlimit} {upperlimit}")
-
     # Convert limits to standard form
     lower = '{:e}'.format(lowerlimit)
     upper = '{:e}'.format(upperlimit)
@@ -733,7 +727,8 @@ def main(mode):
     # print(size)
     print(f"[Debug] Generating Benford set of size {size}. This could take a while zzz")
     #exit()
-    generate_benford_set_from_c_program(lower_mag, upper_mag, size)
+    # generate_benford_set_from_c_program(lower_mag, upper_mag, size)
+    generate_benford_set_from_py_program(10**(lower_mag - 1), 10**(upper_mag), size)
 
     # Compute the expected distribution from the imported Benford set in our range
     beford_distribution_expectation = import_process_benford_set(size, lowerlimit, upperlimit, mode)
