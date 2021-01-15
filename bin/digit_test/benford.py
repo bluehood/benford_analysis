@@ -91,18 +91,13 @@ def input_numbers(input_filename):
 
 
 
-
-
-### --------------------------------------- FIRST DIGIT TEST --------------------------------------------- ###
-
-
-
+### --------------------------------------- DIGIT TEST --------------------------------------------- ###
 
 
 
 
 #Output the results of first_digit_test to file argv[2]
-def output_first_digit_test(digit_occurance, benford_occurance, z_stat):
+def output_digit_test(digit_occurance, benford_occurance, z_stat, mode):
     #Round output figures to 3.d.p. Output relevant entries as percentages.
     digit_frequency = []
     benford_frequency = []
@@ -122,9 +117,16 @@ def output_first_digit_test(digit_occurance, benford_occurance, z_stat):
     print("-----------------------------------------------------------------------------------------------")
 
     #write results to the file with table formats. 
+    if mode[0:2] == '12':
+        offset = 10
+    elif mode[0:2] in ['23'] or mode == '2':
+        offset = 0
+    else:
+        offset = 1
+
     for x in range(0,len(z_stat)):
         line = ""
-        line = str(x + 1) + '&' + " " * (8 + len("Digit") - len(str(x + 1)) - 1)
+        line = str(x + offset) + '&' + " " * (8 + len("Digit") - len(str(x + offset)) - 1)
         line += benford_frequency[x] + '&' + " " * (8 + len("Expected Distribution Occurance") - len(benford_frequency[x]) - 1)
         line += '{:.0f}'.format(float(digit_frequency[x])) + '&' + " " * (8 + len("Observed Distribution Occurance") - len('{:.0f}'.format(float(digit_frequency[x]))) - 1)
         line += z_stat[x] + "\\\\"
@@ -143,30 +145,44 @@ def output_first_digit_test(digit_occurance, benford_occurance, z_stat):
 
 
 
-#Perform the first digit test on the data.
-def first_digit_test(input_data):
-    #Calculate the frequency of each character {1,2,...,9} in the first digit. 
-    print("[Debug] Calculating first digit frequency")
-    digit_frequency = [0] * 9
-    first_digit = 0
+#Perform the digit test on the data.
+def digit_test(input_data, mode):
+    #Calculate the frequency of each character set in indexes specified.
+    if mode in ['1']:
+        print("[Debug] Calculating first digit frequency")
+        digit_frequency = [0] * 9
+        offset = 1
+    elif mode in ['2']:
+        print("[Debug] Calculating second digit frequency")
+        digit_frequency = [0] * 10
+        offset = 1
+    elif mode in ['12', '12h', '12hn']:
+        print("[Debug] Calculating second digit frequency")
+        digit_frequency = [0] * 90
+        offset = 10
+    elif mode in ['23', '23h', '23hn']:
+        print("[Debug] Calculating second digit frequency")
+        digit_frequency = [0] * 100
+        offset = 0
+    
+    digits = 0
     for x in input_data:
-        first_digit = int(x[0])
-        digit_frequency[first_digit - 1] += 1
+        digits = int(x[int(mode[0]) - 1:int(mode[1 % len(mode)])])
+        digit_frequency[digits - offset] += 1
 
     #Convert frequncies to percentage expressed as a decimal. 
     print("[Debug] Converting to percentages")
-    digit_frequency_percent = [0] * 9
 
+    digit_frequency_percent = []
     for x in range(0, len(digit_frequency)):
-        digit_frequency_percent[x] = float(digit_frequency[x] / len(input_data))
+        digit_frequency_percent.append(float(digit_frequency[x] / len(input_data)))
 
     #Calcuate perfect Benford distribution.
     print("[Debug] Computing ideal Benford frequency")
-    benford_frequency_percent = benford_distribution(0, 0)
+    benford_frequency_percent = benford_distribution(mode, 0)
     
     #Compute Benford distribution for data of length equal to dataset
     benford_frequency = []
-
     for x in benford_frequency_percent:
         benford_frequency.append(round(x * len(input_data)))
 
@@ -183,309 +199,6 @@ def first_digit_test(input_data):
     d_star_stat = compute_dstar(digit_frequency_percent, benford_frequency_percent, len(input_data))
 
     return(digit_frequency, benford_frequency, digit_frequency_percent, benford_frequency_percent, z_stat, von_mises_stat, d_star_stat)
-
-
-
-
-
-
-
-
-### --------------------------------------- FIRST-SECOND DIGIT TEST --------------------------------------------- ###
-
-
-
-
-
-
-
-#Output the results of first_digit_test to file argv[2]
-def output_first_second_digit_test(digit_occurance, benford_occurance, z_stat):
-    #Round output figures to 3.d.p. Output relevant entries as percentages.
-    digit_frequency = []
-    benford_frequency = []
-    for x in range(0,len(digit_occurance)):
-        digit_frequency.append(str(int(digit_occurance[x])))
-        benford_frequency.append(str(int(benford_occurance[x])))
-        z_stat[x] = '{:.3f}'.format(z_stat[x])
-
-    #Identify significant deviations based on Z statistic. 
-    for x in range(0, len(z_stat)):
-        if float(z_stat[x]) >= 1.96 and float(z_stat[x]) < 2.576:
-            z_stat[x] = z_stat[x] + " *"
-        elif float(z_stat[x]) >= 2.576:
-            z_stat[x] = z_stat[x] + " **"
-    
-    print("Digit        Expected Distribution Occurance        Observed Distribution Occurance        Z-Statistic")
-    print("-----------------------------------------------------------------------------------------------")
-
-    #write results to the file with table formats. 
-    for x in range(0,len(z_stat)):
-        line = ""
-        line = str(x + 10) + '&' + " " * (8 + len("Digit") - len(str(x + 10)) - 1)
-        line += benford_frequency[x] + '&' + " " * (8 + len("Expected Distribution Occurance") - len(benford_frequency[x]) - 1)
-        line += '{:.0f}'.format(float(digit_frequency[x])) + '&' + " " * (8 + len("Observed Distribution Occurance") - len('{:.0f}'.format(float(digit_frequency[x]))) - 1)
-        line += z_stat[x] + "\\\\"
-        print(line)
-
-    #Calaculate the sum of Benford Distribution - ensure it equals 100!
-    print("")
-    expected_sum = 0
-
-    for x in range(0, len(digit_frequency)):
-        expected_sum += float(benford_frequency[x])
-
-    line = " " * (8 + len("Digit")) + '{:.1f}'.format(expected_sum) + "\n"
-    print(line)
-    return(0)
-
-def first_second_digit_test(input_data):
-    # Calculate the frequency of {10,11,12,...,98,99} in the first two digits. 
-    print("[Debug] Calculating first-second digit frequency")
-    digit_occurence = [0] * 90
-    digit_percent = [0] * 90
-    first_two_digits = 0
-    
-    for x in input_data:
-        try:
-            first_two_digits = int(x[0:2])
-            digit_occurence[first_two_digits - 10] += 1
-
-        except:
-            pass
-
-
-    #Convert frequncies to percentage expressed as a decimal. 
-    print("[Debug] Converting to percentages")
-
-    for x in range(0, len(digit_percent)):
-        digit_percent[x] = float(digit_occurence[x] / len(input_data))
-
-    #Calcuate perfect Benford distribution.
-    print("[Debug] Computing ideal Benford frequency")
-    benford_percent = benford_distribution(1, 0)
-
-    benford_occurence = []
-
-    for x in benford_percent:
-        benford_occurence.append(round(x * len(input_data)))
-
-    #Compute z statistic for this data:
-    print("[Debug] Computing Z statistic")
-    z_stat = []
-    for x in range(0, len(digit_percent)):
-        z_stat.append(compute_z_statistic(digit_percent[x], benford_percent[x], len(input_data)))
-
-
-    #Compute von-mises statistics
-    von_mises_stat = compute_von_mises(benford_occurence, digit_percent, benford_percent, len(input_data))
-
-    #Compute d* statistic
-    d_star_stat = compute_dstar(digit_percent, benford_percent, len(input_data))
-
-    return(digit_occurence, benford_occurence, digit_percent, benford_percent, z_stat, von_mises_stat, d_star_stat)
-
-
-
-
-
-
-
-### --------------------------------------- SECOND DIGIT TEST --------------------------------------------- ###
-
-
-
-
-
-
-
-
-#Output the results of first_digit_test to file argv[2]
-def output_second_digit_test(digit_occurance, benford_occurance, z_stat):
-    #Round output figures to 3.d.p. Output relevant entries as percentages.
-    digit_frequency = []
-    benford_frequency = []
-    for x in range(0,len(digit_occurance)):
-        digit_frequency.append(str(int(digit_occurance[x])))
-        benford_frequency.append(str(int(benford_occurance[x])))
-        z_stat[x] = '{:.3f}'.format(z_stat[x])
-
-    #Identify significant deviations based on Z statistic. 
-    for x in range(0, len(z_stat)):
-        if float(z_stat[x]) >= 1.96 and float(z_stat[x]) < 2.576:
-            z_stat[x] = z_stat[x] + " *"
-        elif float(z_stat[x]) >= 2.576:
-            z_stat[x] = z_stat[x] + " **"
-    
-    print("Digit        Expected Distribution Occurance        Observed Distribution Occurance        Z-Statistic")
-    print("-----------------------------------------------------------------------------------------------")
-
-    #write results to the file with table formats. 
-    for x in range(0,len(z_stat)):
-        line = ""
-        line = str(x + 1) + '&' + " " * (8 + len("Digit") - len(str(x + 1)) - 1)
-        line += benford_frequency[x] + '&' + " " * (8 + len("Expected Distribution Occurance") - len(benford_frequency[x]) - 1)
-        line += '{:.0f}'.format(float(digit_frequency[x])) + '&' + " " * (8 + len("Observed Distribution Occurance") - len('{:.0f}'.format(float(digit_frequency[x]))) - 1)
-        line += z_stat[x] + "\\\\"
-        print(line)
-
-    #Calaculate the sum of Benford Distribution - ensure it equals 100!
-    print("")
-    expected_sum = 0
-
-    for x in range(0, len(digit_frequency)):
-        expected_sum += float(benford_frequency[x])
-
-    line = " " * (8 + len("Digit")) + '{:.1f}'.format(expected_sum) + "\n"
-    print(line)
-    return(0)
-
-
-
-
-def second_digit_test(input_data):
-    #Calculate the frequency of each character {0,1,2,...,9} in the second digit. 
-    print("[Debug] Calculating first digit frequency")
-    digit_frequency = [0] * 10
-    first_digit = 0
-    for x in input_data:
-        try:
-            first_digit = int(x[1])
-        except:
-            #account for single digit values
-            continue
-        digit_frequency[first_digit] += 1
-
-    #Convert frequncies to percentage expressed as a decimal. 
-    print("[Debug] Converting to percentages")
-    digit_frequency_percent = [0] * 10
-
-    for x in range(0, len(digit_frequency)):
-        digit_frequency_percent[x] = float(digit_frequency[x] / len(input_data))
-
-    #Calcuate perfect Benford distribution.
-    print("[Debug] Computing ideal Benford frequency")
-    benford_frequency_percent = benford_distribution(3, 0)
-    
-    #Compute Benford distribution for data of length equal to dataset
-    benford_frequency = []
-
-    for x in benford_frequency_percent:
-        benford_frequency.append(round(x * len(input_data)))
-
-    #Compute Z statistic for this data:
-    print("[Debug] Computing Z statistic")
-    z_stat = []
-    for x in range(0, len(digit_frequency)):
-        z_stat.append(compute_z_statistic(digit_frequency_percent[x], benford_frequency_percent[x], len(input_data)))
-
-    #Compute von-mises statistics
-    von_mises_stat = compute_von_mises(benford_frequency, digit_frequency, benford_frequency_percent, len(input_data))
-
-    #Compute d* statistic
-    d_star_stat = compute_dstar(digit_frequency_percent, benford_frequency_percent, len(input_data))
-
-    return(digit_frequency, benford_frequency, digit_frequency_percent, benford_frequency_percent, z_stat, von_mises_stat, d_star_stat)
-
-
-
-
-
-
-### --------------------------------------- SECOND-THIRD DIGIT TEST--------------------------------------------- ###
-
-
-
-
-
-
-#Output the results of first_digit_test to file argv[2]
-def output_second_third_digit_test(digit_occurance, benford_occurance, z_stat):
-    #Round output figures to 3.d.p. Output relevant entries as percentages.
-    digit_frequency = []
-    benford_frequency = []
-    for x in range(0,len(digit_occurance)):
-        digit_frequency.append(str(int(digit_occurance[x])))
-        benford_frequency.append(str(int(benford_occurance[x])))
-        z_stat[x] = '{:.3f}'.format(z_stat[x])
-
-    #Identify significant deviations based on Z statistic. 
-    for x in range(0, len(z_stat)):
-        if float(z_stat[x]) >= 1.96 and float(z_stat[x]) < 2.576:
-            z_stat[x] = z_stat[x] + " *"
-        elif float(z_stat[x]) >= 2.576:
-            z_stat[x] = z_stat[x] + " **"
-    
-    print("Digit        Expected Distribution Occurance        Observed Distribution Occurance        Z-Statistic")
-    print("-----------------------------------------------------------------------------------------------")
-
-    #write results to the file with table formats. 
-    for x in range(0,len(z_stat)):
-        line = ""
-        line = str(x) + '&' + " " * (8 + len("Digit") - len(str(x + 10)) - 1)
-        line += benford_frequency[x] + '&' + " " * (8 + len("Expected Distribution Occurance") - len(benford_frequency[x]) - 1)
-        line += '{:.0f}'.format(float(digit_frequency[x])) + '&' + " " * (8 + len("Observed Distribution Occurance") - len('{:.0f}'.format(float(digit_frequency[x]))) - 1)
-        line += z_stat[x] + "\\\\"
-        print(line)
-
-    #Calaculate the sum of Benford Distribution - ensure it equals 100!
-    print("")
-    expected_sum = 0
-
-    for x in range(0, len(digit_frequency)):
-        expected_sum += float(benford_frequency[x])
-
-    line = " " * (7 + len("Digit")) + '{:.1f}'.format(expected_sum) + "\n"
-    print(line)
-    return(0)
-
-def second_third_digit_test(input_data):
-    # Calculate the frequency of {00,01,02,...,98,99} in the first two digits. 
-    print("[Debug] Calculating first-second digit frequency")
-    digit_occurence = [0] * 100
-    digit_percent = [0] * 100
-    second_two_digits = 0
-    
-    for x in input_data:
-        try:
-            second_two_digits = int(x[1:3])
-            digit_occurence[second_two_digits] += 1
-
-        except:
-            pass
-
-
-    #Convert frequncies to percentage expressed as a decimal. 
-    print("[Debug] Converting to percentages")
-
-    for x in range(0, len(digit_percent)):
-        digit_percent[x] = float(digit_occurence[x] / len(input_data))
-
-    #Calcuate perfect Benford distribution.
-    print("[Debug] Computing ideal Benford frequency")
-    benford_percent = benford_distribution(23, 0)
-
-    benford_occurence = []
-
-    for x in benford_percent:
-        benford_occurence.append(round(x * len(input_data)))
-
-    #Compute z statistic for this data:
-    print("[Debug] Computing Z statistic")
-    z_stat = []
-    for x in range(0, len(digit_percent)):
-        # print(len(z_stat))
-        z_stat.append(compute_z_statistic(digit_percent[x], benford_percent[x], len(input_data)))
-
-
-    #Compute von-mises statistics
-    von_mises_stat = compute_von_mises(benford_occurence, digit_percent, benford_percent, len(input_data))
-
-    #Compute d* statistic
-    d_star_stat = compute_dstar(digit_percent, benford_percent, len(input_data))
-
-    return(digit_occurence, benford_occurence, digit_percent, benford_percent, z_stat, von_mises_stat, d_star_stat)
-
 
 
 
@@ -501,14 +214,14 @@ def second_third_digit_test(input_data):
 #Calculate the Ideal Benford distribution
 def benford_distribution(mode, size):
 
-    if mode == 0:
+    if mode == '1':
         benford_frequency_first_digit = []
         for x in range(1,10):
             benford_frequency_first_digit.append(math.log10(1 + 1/x))
 
         return(benford_frequency_first_digit)
 
-    elif mode == 1 or mode == 2:
+    elif mode in ['12', '12h', '12hn']:
         benford_frequency_first_second_digit = []
         for x in range(1,10):
             for y in range(0,10):
@@ -516,7 +229,7 @@ def benford_distribution(mode, size):
 
         return(benford_frequency_first_second_digit)
 
-    elif mode == 3:
+    elif mode == '2':
         benford_frequency_first_second_digit = []
         benford_frequency_second_digit = [0] * 10
         for x in range(1,10):
@@ -529,7 +242,7 @@ def benford_distribution(mode, size):
 
         return(benford_frequency_second_digit)
     
-    elif mode == 23:
+    elif mode in ['23', '23h', '23hn']:
         benford_frequency_first_second_third_digit = []
         benford_frequency_second_third_digit = [0] * 100
         for x in range(100,1000):
@@ -681,10 +394,6 @@ def refine_first_digit_finite_range(lowerbound, upperbound, dataset):
     
     return(digit_frequency_observed, len(dataset_refined))
 
-
-#Empricical second digit finite range
-def second_digit_finite_range():
-    return(0)
 
 
 
@@ -1348,89 +1057,62 @@ def main(mode):
         usage()
         exit()
 
-    # if mode < -1 or mode > 3:
-    #     print("[Fatal Error] Cannot process mode", str(mode), ". Please enter a valid mode of analysis.")
-    #     usage()
-    #     exit()
-
-
     #Import data from argv[1]
     filename = sys.argv[1]
     data = input_numbers(filename)
     print("[Debug] Starting First Digit Analysis")
 
-    if mode == '1':
-        data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic = first_digit_test(data)
-        bins_to_plot = ['1','2','3','4','5','6','7','8','9']
-    elif mode in ['12', '12h', '12hn']:
-        data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic = first_second_digit_test(data)
+    if mode in ['1', '12', '12h', '12hn', '23', '23hn', '2']:
+        data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic = digit_test(data, mode)
+        
         bins_to_plot = []
-        for x in range(10, 100):
-            bins_to_plot.append(x)
-    elif mode in ['23', '23hn']:
-        data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic = second_third_digit_test(data)
-        bins_to_plot = []
-        for x in range(0, 100):
-            bins_to_plot.append(x)
-    elif mode == '2':
-        data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic = second_digit_test(data)
-        bins_to_plot = []
-        for x in range(0, 10):
-            bins_to_plot.append(x)
+
+        if mode == '1':
+            for x in range(1, 10):
+                bins_to_plot.append(x)
+        elif mode == '2':
+            for x in range(0, 10):
+                bins_to_plot.append(x)
+        elif mode in ['12', '12h', '12hn']:
+            for x in range(10, 100):
+                bins_to_plot.append(x)
+
+        elif mode in ['23', '23hn']:
+            for x in range(0, 100):
+                bins_to_plot.append(x)
+    
     elif mode == 'f1':
         data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic, data_size = first_digit_benford_finite_range(data)
-        bins_to_plot = ['1','2','3','4','5','6','7','8','9']
+        bins_to_plot = []
+        for x in range(1, 10):
+                bins_to_plot.append(x)
 
     #Output results
     print("[Debug] Analysis complete. Outputing results.")
     print("\n\n###--- Analysis for", filename, "---###\n")
 
     # Process the mode of analysis e.g. first digit analysis = 1
-    if mode == '1': # 0
-        output_first_digit_test(data_raw, benford_raw, z_statistic)
-    elif mode == '12': # 1
-        output_first_second_digit_test(data_raw, benford_raw, z_statistic)
-    elif mode == '12h': # 2
-        output_first_second_digit_test(data_raw, benford_raw, z_statistic)
-        plot_heat_map(data_raw, benford_raw, '12h')
-        exit()
-    elif mode == '12hn': # need to calculate normalised residuals 
-        norm_residuals, null, null = compute_normalised_residuals(data_raw, benford_raw)
-        output_first_second_digit_test(data_raw, benford_raw, z_statistic)
-        # plot normalised residuals (already calculated) edit plot_heat_map to include mode
-        plot_heat_map(norm_residuals, None, '12hn')
-        exit()
-    elif mode == '23hn':
-        norm_residuals, null, null = compute_normalised_residuals(data_raw, benford_raw)
-        output_second_third_digit_test(data_raw, benford_raw, z_statistic)
-        # plot normalised residuals (already calculated) edit plot_heat_map to include mode
-        plot_heat_map(norm_residuals, None, '23hn')
-        exit()
-    elif mode == '2': # 3
-        output_second_digit_test(data_raw, benford_raw, z_statistic)
-    elif mode == 'f1': # -1
-        output_first_digit_test(data_raw, benford_raw, z_statistic)
+    output_digit_test(data_raw, benford_raw, z_statistic, mode)
 
+    # Compute datasize for finite range case 
     if mode != 'f1':
         data_size = len(data)
-        # test
-
-
-
+    
+    # Test statistic Output
     print("Cramer-von Mises test: {} {} {}".format(von_mises_statistic[0],von_mises_statistic[1],von_mises_statistic[2]))
     print("d* test: {}, {}{}".format(d_star_statistic[0], d_star_statistic[1], d_star_statistic[2]))
     #Legend significance levels
     print("\n * significant at the .05 level\n** significant at the .01 level\n")
 
-    #Output plot
+    # Create plots of the data
     print("[Debug] Generating Plot of the data.")
-
-    #if mode in [0,1,2,3]:
-    plot_bar_chart(bins_to_plot, data_raw, benford_raw, data_size, von_mises_statistic[2], d_star_statistic[1], mode)
-
-    #elif mode in [-1]:
-
-
+    if mode in ['1','f1','2','12']:
+        plot_bar_chart(bins_to_plot, data_raw, benford_raw, data_size, von_mises_statistic[2], d_star_statistic[1], mode)
+    elif mode in ['12h', '12hn']:
+        if 'h' in mode:
+            norm_residuals, null, null = compute_normalised_residuals(data_raw, benford_raw)
+        plot_heat_map(norm_residuals, None, mode)
+    
     print("[Debug] Output complete. Exiting.")
     exit()
 
