@@ -1,7 +1,7 @@
 # benford_analysis
 Forensic and data analytics toolset for testing conformity of data with Benford's law. The toolset has multiple capabilites:
 
-* Synthetic Benford set generation including bruteforce geometric series techniques allowing for varying degrees of conformity. 
+* Synthetic Benford set generation including bruteforce and geometric series techniques allowing for varying degrees of conformity. 
 * Traditional automated Benford test, including the first, second and first-second digit tests. Each test includes plots of the data, either histograms or discrete heatmaps, and various test statistics assessing conformity. 
 * Finite range Benford's law including a generalised finite range implementation using synthetic Benford sets. 
 * Other general statistics and miscellaneous tools. 
