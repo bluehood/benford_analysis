@@ -8,6 +8,10 @@ import random
 
 
 def usage():
+    print(f'{sys.argv[0]} <mode> <input_file (base set)> <output_file> <parameters for the mode>\n\nModes:')
+    print(f'noise - introduce random Gaussian noise into the set. <sigma for deviations (higher = more deviation!)>')
+    print(f'pro - pronounce a digit at a given index. <digit value (e.g. 5)> <index (>1)> <rate (percentage)>')
+    print(f'round - introduce rounding behaviour. Pronounce lowest digit and reduce highest digit. <index (>1)> <rate (percentage)>')
     return(0)
 
 ### --------------------------------------- IMPORT/EXPORT DATA --------------------------------------------- ###
@@ -135,8 +139,13 @@ def main(mode, base_set, dev_set, parameters):
 
 
 if __name__ == '__main__':
-    param = []
-    for x in range(4, len(sys.argv)):
-        param.append(sys.argv[x])
+    try:
+        param = []
+        for x in range(4, len(sys.argv)):
+            param.append(sys.argv[x])
 
-    main(sys.argv[1], sys.argv[2], sys.argv[3], param)
+        main(sys.argv[1], sys.argv[2], sys.argv[3], param)
+    
+    except:
+        usage()
+        exit()
