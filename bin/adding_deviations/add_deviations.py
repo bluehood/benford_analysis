@@ -3,6 +3,7 @@ import sys
 import math
 import numpy as np
 import random
+import time
 
 ### --------------------------------------- USAGE --------------------------------------------- ###
 
@@ -54,12 +55,23 @@ def introduce_noise(set, params):
     print(f'[Debug] Introducing Gaussian noise with sigma = {params[0]}')
     sigma = float(params[0])
 
+    np.random.seed(int(time.time()))
     for x in range(0, len(set)):
         epsilon = np.random.normal(0, sigma)
         set[x] += set[x] * epsilon
 
     return(set)
 
+def introduce_noise_two(set, params):
+    print(f'[Debug] Introducing noise with sigma = {params[0]}')
+    sigma = float(params[0])
+
+    np.random.seed(int(time.time()))
+    for x in range(0, len(set)):
+        set[x] = np.random.normal(set[x], math.floor(np.log10(set[x])) * sigma)
+        # set[x] += set[x] * (sigma)
+
+    return(set)
 
 def pronounce(set, params):
     print(f'[Debug] Pronouncing the digit {params[0]} in the index {params[1]} at the {params[2]}% rate.')
@@ -125,11 +137,12 @@ def main(mode, base_set, dev_set, parameters):
     # set the mode of operation
     if mode == 'noise':
         modified_set = introduce_noise(data, parameters)
+    elif mode == 'noise_two':
+        modified_set = introduce_noise_two(data, parameters)
     elif mode == 'pro':
         modified_set = pronounce(data, parameters)
     elif mode == 'round':
         modified_set = rounding(data, parameters)
-
 
     # write out to file
     output_numbers(dev_set, modified_set)

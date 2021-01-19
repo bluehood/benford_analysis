@@ -167,8 +167,11 @@ def digit_test(input_data, mode):
     
     digits = 0
     for x in input_data:
-        digits = int(x[int(mode[0]) - 1:int(mode[1 % len(mode)])])
-        digit_frequency[digits - offset] += 1
+        try:
+            digits = int(x[int(mode[0]) - 1:int(mode[1 % len(mode)])])
+            digit_frequency[digits - offset] += 1
+        except:
+            pass
 
     #Convert frequncies to percentage expressed as a decimal. 
     print("[Debug] Converting to percentages")
@@ -686,7 +689,6 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
         #plt.xticks(np.arange(10, 100, 5))
         plt.xlim(9,100)
 
-    
     
     if mode != '2':#Format Legend
         patch = []
