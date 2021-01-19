@@ -119,7 +119,7 @@ def output_digit_test(digit_occurance, benford_occurance, z_stat, mode):
     #write results to the file with table formats. 
     if mode[0:2] == '12':
         offset = 10
-    elif mode[0:2] in ['23'] or mode == '2':
+    elif mode[0:2] in ['23'] or mode in ['2']:
         offset = 0
     else:
         offset = 1
@@ -155,7 +155,7 @@ def digit_test(input_data, mode):
     elif mode in ['2']:
         print("[Debug] Calculating second digit frequency")
         digit_frequency = [0] * 10
-        offset = 1
+        offset = 0
     elif mode in ['12', '12h', '12hn']:
         print("[Debug] Calculating second digit frequency")
         digit_frequency = [0] * 90
@@ -631,7 +631,7 @@ def compute_dstar(p, b, size):
 def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar, mode):
     #increase font size
     plt.rcParams.update({'font.size': 12})
-
+    print(bins)
     # #Compute errors
     # yerror = []
     # for x in range(0, len(frequency)):
@@ -654,15 +654,14 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
     #Output as histogram
     #First (main) subplot
 
-    if mode in ['1','f1']:
-        ind = np.arange(9)
-    elif mode == '12':
-        ind = np.arange(10, 100, 1)
-    elif mode == '2':
-        ind = np.arange(0, 10, 1)
+    # if mode in ['1','f1']:
+    #     ind = np.arange(9)
+    # elif mode == '12':
+    #     ind = np.arange(10, 100, 1)
+    # elif mode == '2':
+    #     ind = np.arange(0, 10, 1)
 
     width = 0.7
-
 
     fig = plt.figure(figsize=(8, 6))
     gs = gridspec.GridSpec(2,1, height_ratios=[3,1])
@@ -676,11 +675,11 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
         ax0.errorbar(bins, benford_freq, yerr=yerror, label="Expected Occurrence", color='black', marker='x', fmt='x', capsize=3, elinewidth=1, zorder=1)
     
 
-    ax0.bar(ind, frequency, width, color='grey', label="Observed Occurrence", zorder=-1)
+    ax0.bar(bins, frequency, width, color='grey', label="Observed Occurrence", zorder=-1)
 
     plt.xlabel("Digit Value")
     plt.ylabel("Observed Occurence")
-    plt.xticks(ind, "")
+    plt.xticks(bins, "")
 
 
     if mode == '12':
@@ -724,9 +723,17 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
     
     #Begin plotting
     ax1 = plt.subplot(gs[1])
-    ax1.bar(ind, difference, 0.70, color=y_colours)
+    ax1.bar(bins, difference, 0.70, color=y_colours)
 
-    plt.xticks(ind, bins)
+    if mode in ['1', 'f1']:
+        bins_ticks = []
+        for x in bins:
+            bins_ticks.append(x + 1)
+
+    else:
+        bins_ticks = bins
+
+    plt.xticks(bins, bins_ticks)
     
 
     #format spacing on graph
@@ -1068,24 +1075,18 @@ def main(mode):
         bins_to_plot = []
 
         if mode == '1':
-            for x in range(1, 10):
-                bins_to_plot.append(x)
+            bins_to_plot = np.arange(9)
         elif mode == '2':
-            for x in range(0, 10):
-                bins_to_plot.append(x)
+            bins_to_plot = np.arange(0, 10, 1)
         elif mode in ['12', '12h', '12hn']:
-            for x in range(10, 100):
-                bins_to_plot.append(x)
-
+            bins_to_plot = np.arange(10, 100, 1)
         elif mode in ['23', '23hn']:
             for x in range(0, 100):
                 bins_to_plot.append(x)
     
     elif mode == 'f1':
         data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic, data_size = first_digit_benford_finite_range(data)
-        bins_to_plot = []
-        for x in range(1, 10):
-                bins_to_plot.append(x)
+        bins_to_plot = np.arange(9)
 
     #Output results
     print("[Debug] Analysis complete. Outputing results.")
