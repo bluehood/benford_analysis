@@ -44,7 +44,7 @@ def input_numbers(input_filename):
     return(input_data)
 
 
-def main(base_set):
+def main(base_set, normalise):
     # import data from file
     data = input_numbers(base_set)
 
@@ -53,6 +53,12 @@ def main(base_set):
     X_2 = [x[1] for x in data]
     A_2 = [x[2] for x in data]
     d_star = [x[3] for x in data]
+
+    if normalise == 'true':
+        for x in range(0, len(X_2)):
+            X_2[x] = X_2[x] / 1.938
+            A_2[x] = A_2[x] / 2.492
+            d_star[x] = d_star[x] / 1.330
 
 
     # Define font size
@@ -67,16 +73,25 @@ def main(base_set):
     # Plot significance values at .05 value
     #     if A_squared >= 2.492 and A_squared < 3.88:
 
-    plt.axhline(y=1.330, linewidth=0.75, color='g', linestyle='--')
-    plt.axhline(y=2.492, linewidth=0.75, color='b', linestyle='--')
+    if normalise != 'true':
+        plt.axhline(y=1.938, linewidth=0.75, color='r', linestyle='--')
+        plt.axhline(y=1.330, linewidth=0.75, color='g', linestyle='--')
+        plt.axhline(y=2.492, linewidth=0.75, color='b', linestyle='--')
+    elif normalise == 'true':
+        plt.axhline(y=1, linewidth=0.75, color='black', linestyle='--')
+        plt.axhline(y=1.296, linewidth=0.75, color='r', linestyle='--')
+        plt.axhline(y=1.2, linewidth=0.75, color='g', linestyle='--')
+        plt.axhline(y=1.557, linewidth=0.75, color='b', linestyle='--')
 
     plt.legend(loc='best')
 
     # Formatting of graph
-    plt.xlim(0, x_axis[-1])
-    plt.ylim(0, max(max(X_2), max(d_star)))
-    plt.show()
+    plt.xlim(0, 2.5)
+    plt.ylim(0, 8)
+    plt.xlabel(r"$\sigma$")
+    plt.ylabel("Normalised Test Statistics")
+    plt.savefig('{}'.format(sys.argv[3]), bbox_inches='tight')
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    main(sys.argv[1], sys.argv[2])

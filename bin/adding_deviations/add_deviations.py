@@ -82,7 +82,7 @@ def pronounce(set, params):
     if index <= 0:
         print(f'[Error] The index {index} is less than one! Must be one or greater.')
         exit()
-    elif rate <= 0 or rate >= 100:
+    elif rate < 0 or rate >= 100:
         print(f'[Error] The rate {rate} must be a valid percentage and not zero or one hundred.')
         exit()
     elif int(digit) < 0 or int(digit) >= 10:
@@ -110,7 +110,7 @@ def rounding(set, params):
     if index <= 0:
         print(f'[Error] The index {index} is less than one! Must be one or greater.')
         exit()
-    elif rate <= 0 or rate >= 100:
+    elif rate < 0 or rate >= 100:
         print(f'[Error] The rate {rate} must be a valid percentage and not zero or one hundred.')
         exit()
 
@@ -152,13 +152,13 @@ def main(mode, base_set, dev_set, parameters):
 
 
 if __name__ == '__main__':
-    try:
-        param = []
-        for x in range(4, len(sys.argv)):
-            param.append(sys.argv[x])
+    # try:
+    param = []
+    for x in range(4, len(sys.argv)):
+        param.append(sys.argv[x])
 
-        main(sys.argv[1], sys.argv[2], sys.argv[3], param)
+    main(sys.argv[1], sys.argv[2], sys.argv[3], param)
     
-    except:
-        usage()
-        exit()
+    # except:
+    #     usage()
+    #     exit()

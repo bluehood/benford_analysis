@@ -634,7 +634,7 @@ def compute_dstar(p, b, size):
 def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar, mode):
     #increase font size
     plt.rcParams.update({'font.size': 12})
-    print(bins)
+    # print(bins)
     # #Compute errors
     # yerror = []
     # for x in range(0, len(frequency)):
