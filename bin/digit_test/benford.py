@@ -187,7 +187,7 @@ def digit_test(input_data, mode):
     #Compute Benford distribution for data of length equal to dataset
     benford_frequency = []
     for x in benford_frequency_percent:
-        benford_frequency.append(round(x * len(input_data)))
+        benford_frequency.append(x * len(input_data))
 
     #Compute Z statistic for this data:
     print("[Debug] Computing Z statistic")
@@ -261,46 +261,31 @@ def benford_distribution(mode, size):
 
 
 #Calculate finite range Benford distributions
-def finite_range_benford_distribution(mode, data):
+def finite_range_benford_distribution(data, mode):
     #Finite range calculation
-    if mode == -1:
-        P = []
-        # try:
-        #     #input lower limit
-        #     lowerlimit = int(input("Lower Limit: "))
-        #     #input upper limit
-        #     upperlimit = int(input("Upper Limit: "))
-        # except:
-        #     print("Please type an integer as input.")
-        #     exit()
+    P = []
+    # Calculate upperlimit
+    data_float = [ float(x) for x in data ]
+    lowerlimit = min(data_float)
+    upperlimit = max(data_float)
+    print(lowerlimit, upperlimit)
 
-        # #Check that the limits make sense
-        # if lowerlimit >= upperlimit:
-        #     print("Please ensure that the lower limit is less than the upper limit.")
-        #     exit()
+    # refine range 
+    digit_observed, size = refine_finite_range(int(lowerlimit), int(upperlimit), data, mode)
+    #convert to standard form
+    lower = '{:e}'.format(lowerlimit)
+    upper = '{:e}'.format(upperlimit)
 
-        # Calculate upperlimit
-        data_float = [ float(x) for x in data ]
-        lowerlimit = min(data_float)
-        upperlimit = max(data_float)
-        print(lowerlimit, upperlimit)
+    #calculate a,b,alpha,beta
+    LowerLimit = str(lower).split('e')
+    UpperLimit = str(upper).split('e')
 
-        #First digit finite range analysis
-        digit_observed, size = refine_first_digit_finite_range(int(lowerlimit), int(upperlimit), data)
-        #convert to standard form
-        lower = '{:e}'.format(lowerlimit)
-        upper = '{:e}'.format(upperlimit)
+    a = float(LowerLimit[0])
+    alpha = int(LowerLimit[1])
+    b = float(UpperLimit[0])
+    beta = int(UpperLimit[1])
 
-        #calculate a,b,alpha,beta
-        LowerLimit = str(lower).split('e')
-        UpperLimit = str(upper).split('e')
-
-        a = float(LowerLimit[0])
-        alpha = int(LowerLimit[1])
-        b = float(UpperLimit[0])
-        beta = int(UpperLimit[1])
-        ret = 0
-
+    if mode == 'f1':
         for D in range(1, 10):
             #compute lambda_a
             if D > int(str(a)[0]):
@@ -324,13 +309,72 @@ def finite_range_benford_distribution(mode, data):
             #Compute P_D
             P_D = 1/lambda_c * ((beta - alpha -1) * math.log10(1 + 1/D) + lambda_a + lambda_b)
 
-            if ret == 0:
-                P.append(round(P_D * size))
-            elif ret == 1:
-                P.append(P_D)
+            
+            P.append(P_D * size)
+            
 
         
         return(P, digit_observed, size)
+
+    elif mode == 'f2':
+        a_1 = int(str(a)[0])
+        a_2 = int(str(a).replace('.','')[1])
+        b_1 = int(str(b)[0])
+        b_2 = int(str(b).replace('.','')[1])
+
+        for d_2 in range(0, 10):
+            # compute lambda_a
+            lambda_a = 0
+
+            if d_2 > a_2:
+                for d_1 in range(a_1, 10):
+                    lambda_a += np.log10(1 + 1/(10*d_1 + d_2))
+
+            elif d_2 < a_2:
+                for d_1 in range(a_1 + 1, 10):
+                    lambda_a += np.log10(1 + 1/(10*d_1 + d_2))
+
+            elif d_2 == a_2:
+                lambda_a += np.log10((a_1 + (d_2 + 1) * 10 ** (-1) ) / a)
+                for d_1 in range(a_1 + 1, 10):
+                    lambda_a += np.log10(1 + 1/(10*d_1 + d_2))
+
+            # compute lambda_b
+            lambda_b = 0
+
+            if d_2 > b_2:
+                for d_1 in range(1, b_1):
+                    lambda_b += np.log10(1 + 1/(10*d_1 + d_2))
+
+            elif d_2 < b_2:
+                for d_1 in range(1, b_1 + 1):
+                    lambda_b += np.log10(1 + 1/(10*d_1 + d_2))
+
+            elif d_2 == b_2:
+                lambda_b += - np.log10(b / (b_1 + 10**(-1) * (d_2 + 1)))
+                for d_1 in range(1, b_1 + 1):
+                    lambda_b += np.log10(1 + 1/(10*d_1 + d_2))
+
+
+
+            #compute lambda_c
+            lambda_c = (beta - alpha) + math.log10(b/a)
+
+            #compute lambda_d (sum in main expression)
+            lambda_d = 0
+
+            for d_1 in range(1, 10):
+                 lambda_d += np.log10(1 + 1/(10*d_1 + d_2))
+
+            #Compute P_D
+            P_D = 1/lambda_c * ((beta - alpha -1) * lambda_d + lambda_a + lambda_b)
+            
+            # Append to distribution
+            P.append(P_D * size)
+
+        
+        return(P, digit_observed, size)
+            
 
 
 
@@ -343,12 +387,12 @@ def finite_range_benford_distribution(mode, data):
 
 
 #First Digit Finite range Benford's law
-def first_digit_benford_finite_range(input_data):
+def benford_finite_range(input_data, mode):
     print("[Debug] Calculating first digit frequency")
     #Calcuate perfect Benford distribution.
     print("[Debug] Computing ideal Benford frequency")
     
-    benford_frequency, digit_frequency, dataset_size = finite_range_benford_distribution(-1, input_data)
+    benford_frequency, digit_frequency, dataset_size = finite_range_benford_distribution(input_data, mode)
 
     #Compute Benford distribution for data of length equal to dataset
     benford_frequency_percent = []
@@ -381,7 +425,7 @@ def first_digit_benford_finite_range(input_data):
 
 
 
-def refine_first_digit_finite_range(lowerbound, upperbound, dataset):
+def refine_finite_range(lowerbound, upperbound, dataset, mode):
     #Compute data in finite range
     dataset_refined = []
     for x in range(0, len(dataset)):
@@ -389,10 +433,17 @@ def refine_first_digit_finite_range(lowerbound, upperbound, dataset):
             dataset_refined.append(int(dataset[x]))
 
     #Calculate the frequency of each digit
-    digit_frequency_observed = [0] * 9
+    if mode == 'f1':
+        digit_frequency_observed = [0] * 9
 
-    for x in dataset_refined:
-        digit_frequency_observed[int(str(x)[0]) - 1] += 1
+        for x in dataset_refined:
+            digit_frequency_observed[int(str(x)[0]) - 1] += 1
+
+    elif mode == 'f2':
+        digit_frequency_observed = [0] * 10
+
+        for x in dataset_refined:
+            digit_frequency_observed[int(str(x)[1])] += 1
 
     
     return(digit_frequency_observed, len(dataset_refined))
@@ -634,35 +685,8 @@ def compute_dstar(p, b, size):
 def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar, mode):
     #increase font size
     plt.rcParams.update({'font.size': 12})
-    # print(bins)
-    # #Compute errors
-    # yerror = []
-    # for x in range(0, len(frequency)):
-    #     yerror.append(math.sqrt(benford_freq[x]))
-
-    # #normalised residuals and colours
-    # difference = []
-    # y_colours = []
-    # for x in range(0, len(yerror)):
-    #     if yerror[x] == 0:
-    #         yerror[x] =1
-    #     difference.append((frequency[x] - benford_freq[x]) / yerror[x])
-    #     if abs(difference[x]) > 1:
-    #         y_colours.append('firebrick')
-    #     else:
-    #         y_colours.append('green')
 
     difference, y_colours, yerror = compute_normalised_residuals(frequency, benford_freq)
-
-    #Output as histogram
-    #First (main) subplot
-
-    # if mode in ['1','f1']:
-    #     ind = np.arange(9)
-    # elif mode == '12':
-    #     ind = np.arange(10, 100, 1)
-    # elif mode == '2':
-    #     ind = np.arange(0, 10, 1)
 
     width = 0.7
 
@@ -674,7 +698,7 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
         ax0.errorbar(bins, benford_freq, yerr=yerror, label="Expected Occurrence", color='black', marker='x', fmt='x', capsize=3, elinewidth=1, zorder=1)
     elif mode == '12':
         ax0.errorbar(bins, benford_freq, yerr=yerror, label="Expected Occurrence", color='black', marker='.', fmt='x', capsize=2, elinewidth=1, zorder=1)
-    elif mode == '2':
+    elif mode in ['2','f2']:
         ax0.errorbar(bins, benford_freq, yerr=yerror, label="Expected Occurrence", color='black', marker='x', fmt='x', capsize=3, elinewidth=1, zorder=1)
     
 
@@ -686,11 +710,10 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
 
 
     if mode == '12':
-        #plt.xticks(np.arange(10, 100, 5))
         plt.xlim(9,100)
 
     
-    if mode != '2':#Format Legend
+    if mode not in ['2', 'f2']:#Format Legend
         patch = []
         handles, labels = ax0.get_legend_handles_labels()
         patch.append(mpatches.Patch(color='green', label=r'$|\sigma|$ < 1'))
@@ -765,7 +788,7 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
         plt.xticks(np.arange(10, 100, 5))
         plt.xlim(9,100)
 
-    elif mode == '2':
+    elif mode in ['2','f2']:
         plt.xlabel("Second Digit Value")
         plt.ylabel("Normalised Residual")
         plt.ylim(-y_range - 0.75, y_range + 0.75) 
@@ -1087,19 +1110,23 @@ def main(mode):
                 bins_to_plot.append(x)
     
     elif mode == 'f1':
-        data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic, data_size = first_digit_benford_finite_range(data)
+        data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic, data_size = benford_finite_range(data, mode)
         bins_to_plot = np.arange(9)
-
+        # Compute datasize for finite range case
+        data_size = len(data)
+    
+    elif mode == 'f2':
+        data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic, data_size = benford_finite_range(data, mode)
+        bins_to_plot = np.arange(10)
+        data_size = len(data)
+    
+    data_size = len(data)
     #Output results
     print("[Debug] Analysis complete. Outputing results.")
     print("\n\n###--- Analysis for", filename, "---###\n")
 
     # Process the mode of analysis e.g. first digit analysis = 1
     output_digit_test(data_raw, benford_raw, z_statistic, mode)
-
-    # Compute datasize for finite range case 
-    if mode != 'f1':
-        data_size = len(data)
     
     # Test statistic Output
     print("Cramer-von Mises test: {} {} {}".format(von_mises_statistic[0],von_mises_statistic[1],von_mises_statistic[2]))
@@ -1109,7 +1136,7 @@ def main(mode):
 
     # Create plots of the data
     print("[Debug] Generating Plot of the data.")
-    if mode in ['1','f1','2','12']:
+    if mode in ['1','f1','f2','2','12']:
         plot_bar_chart(bins_to_plot, data_raw, benford_raw, data_size, von_mises_statistic[2], d_star_statistic[1], mode)
     elif mode in ['12h', '12hn']:
         if 'h' in mode:
