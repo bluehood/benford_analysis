@@ -12,28 +12,15 @@ from subprocess import call
 from sigfig import round
 import random
 
-# ------ Generate and Import Bendford set 
+def import_process_benford_set(filename):
+    # filename = location of set to read in
 
-# Generate benford set using Python geometric series
-def generate_benford_set_from_py_program():
-    call(["generate_benford_geometric.py", "/tmp/generate_benford_output.txt", str(1000000), str(10**2), str(10**6)])
-    return(0)
-
-def import_process_benford_set():
-    # Location of saved benford set 
-    filename = "/tmp/generate_benford_output.txt"
     # Open contents of filename and write to the list lines
     with open(filename) as f:
         lines = f.read().splitlines()
+
+    lines = [ int(x) for x in lines ] 
     return(lines)
-
-
-
-
-
-# ------ Ordinary Benford tests
-
-
 
 # Benford distribution
 def benford_distribution(mode, size):
@@ -67,20 +54,7 @@ def benford_distribution(mode, size):
         # print(benford_frequency_second_digit)
 
         return(benford_frequency_second_digit)
-    
-    elif mode in ['23', '23h', '23hn']:
-        benford_frequency_first_second_third_digit = []
-        benford_frequency_second_third_digit = [0] * 100
-        for x in range(100,1000):
-            benford_frequency_first_second_third_digit.append(math.log10(1 + 1/x))
 
-        for x in range(0, len(benford_frequency_first_second_third_digit)):
-            # print(int(str(x + 100)[1:3]))
-            benford_frequency_second_third_digit[int(str(x + 100)[1:3])] += benford_frequency_first_second_third_digit[x]
-        
-        print(benford_frequency_second_third_digit)
-
-        return(benford_frequency_second_third_digit)
 
 #Perform the digit test on the data.
 def digit_test(input_data, mode, test_statistic):
@@ -110,6 +84,8 @@ def digit_test(input_data, mode, test_statistic):
     digit_frequency_percent = []
     for x in range(0, len(digit_frequency)):
         digit_frequency_percent.append(float(digit_frequency[x] / len(input_data)))
+
+    # print(digit_frequency_percent)
 
     #Calcuate perfect Benford distribution.
     # print("[Debug] Computing ideal Benford frequency")
@@ -370,9 +346,10 @@ def compute_von_mises(expected_list, observed_list, benford_probability, size):
     return(A_squared)
     
 
-def plot_result(x_axis, y_axis1, y_axis2, mode, test):
+def plot_result_second(x_axis, y_axis1, y_axis2, mode, test):
     # mean of test statistic. Round to two significant figures
-    X2_mean = round(float(sum(y_axis2) / len(y_axis2)), 2)
+    X2_mean = round(float(sum(y_axis2) / len(y_axis2)), 3)
+    print(X2_mean)
 
     # calculate magnitude of test statistic mean
     test_statistic_magnitude = math.floor(np.log10(X2_mean))
@@ -381,7 +358,11 @@ def plot_result(x_axis, y_axis1, y_axis2, mode, test):
     X2_leading_digits = ''
     for x in range(0, len(str(X2_mean))):
         if str(X2_mean)[x] != '0' and str(X2_mean)[x] != '.':
-            X2_leading_digits = str(X2_mean)[x - 1] + '.' + str(X2_mean)[x:]
+            if str(X2_mean)[x + 1] != '.':
+                X2_leading_digits = str(X2_mean)[x] + '.' + str(X2_mean)[x + 1:x+2].replace('.', '')
+            else: 
+                X2_leading_digits = str(X2_mean)[x] + '.' + str(X2_mean)[x + 2:x+3].replace('.', '')
+            break
 
     # format test statistic mean for display
     test_statistic_format = f'${str(X2_leading_digits)} \\times 10^' + '{' +  f'{test_statistic_magnitude}' + '}$'
@@ -444,31 +425,31 @@ def plot_result(x_axis, y_axis1, y_axis2, mode, test):
 
     # Draw lines from main figure to zoomed in subfigure
     if mode == 'd':
-        x_values_one = [4, 6.2]
-        y_values_one = [0, 5.5]
+        x_values_one = [4, 6.1]
+        y_values_one = [X2_mean, 1.5]
 
-        x_values_two = [6, 9.5]
-        y_values_two = [0, 5.4]
+        x_values_two = [6, 8.9]
+        y_values_two = [X2_mean, 1.5]
 
         plt.plot(x_values_one, y_values_one, linewidth=0.75, color='grey')
         plt.plot(x_values_two, y_values_two, linewidth=0.75, color='grey')
 
     elif mode == 'X_2':
-        x_values_one = [4, 5.6]
-        y_values_one = [0, 480]
+        x_values_one = [4, 4.3]
+        y_values_one = [X2_mean, 40]
 
-        x_values_two = [6, 9.45]
-        y_values_two = [0, 460]
+        x_values_two = [6, 7.2]
+        y_values_two = [X2_mean, 40]
 
         plt.plot(x_values_one, y_values_one, linewidth=0.75, color='grey')
         plt.plot(x_values_two, y_values_two, linewidth=0.75, color='grey')
 
     elif mode == 'A':
-        x_values_one = [4, 5.5]
-        y_values_one = [0, 190]
+        x_values_one = [4, 5.45]
+        y_values_one = [0, 13]
 
-        x_values_two = [6, 9.45]
-        y_values_two = [0, 190]
+        x_values_two = [6, 8.25]
+        y_values_two = [0, 13]
 
         plt.plot(x_values_one, y_values_one, linewidth=0.75, color='grey')
         plt.plot(x_values_two, y_values_two, linewidth=0.75, color='grey')
@@ -549,17 +530,240 @@ def plot_result(x_axis, y_axis1, y_axis2, mode, test):
     plt.legend(handles=patch, loc='best')
 
     # location of zoomed portion
+    # test = True
     if test != True:
         if mode == 'd':
-            sub_axes = plt.axes([.55,.4,.3,.3])
+            sub_axes = plt.axes([.55,.44,.25,.25])
+            plt.ylim(0, 2)
+
         elif mode == 'X_2':
-            sub_axes = plt.axes([.5,.3,.35,.35])
+            # sub_axes = plt.axes([.5,.3,.35,.35])
+            
+            sub_axes = plt.axes([.4,.42,.25,.25])
+            plt.ylim(0, 30)
         elif mode == 'A':
-            sub_axes = plt.axes([.5,.3,.35,.35])
+            sub_axes = plt.axes([.5,.38,.25,.25])
+            plt.ylim(0, 17)
     
         # plot zoomed portion 
         sub_axes.scatter(x_axis_zoomed, y_axis1_zoomed, color='royalblue', s=3)
         sub_axes.scatter(x_axis_zoomed, y_axis2_zoomed, color='firebrick', s=3)
+        # plt.ylim(0, 15)
+        # Horizontal line at x2_mean
+        plt.axhline(y=X2_mean, linewidth=1, color='black')
+        
+        # Horziontal lines on subplots
+        for value in range(4, 7):
+            sub_axes.axvline(x=value, linewidth=0.75, color='grey', linestyle='--')
+
+    plt.savefig('{}'.format(sys.argv[3]), bbox_inches='tight')
+    plt.show()
+    
+    return(0)
+
+def plot_result_first(x_axis, y_axis1, y_axis2, mode, test):
+    # mean of test statistic. Round to two significant figures
+    X2_mean = round(float(sum(y_axis2) / len(y_axis2)), 3)
+    print(X2_mean)
+
+    # calculate magnitude of test statistic mean
+    test_statistic_magnitude = math.floor(np.log10(X2_mean))
+
+    # Remove leading zeros from test statistic. 
+    X2_leading_digits = ''
+    for x in range(0, len(str(X2_mean))):
+        if str(X2_mean)[x] != '0' and str(X2_mean)[x] != '.':
+            if str(X2_mean)[x + 1] != '.':
+                X2_leading_digits = str(X2_mean)[x] + '.' + str(X2_mean)[x + 1:x+2].replace('.', '')
+            else: 
+                X2_leading_digits = str(X2_mean)[x] + '.' + str(X2_mean)[x + 2:x+3].replace('.', '')
+            break
+
+    # format test statistic mean for display
+    test_statistic_format = f'${str(X2_leading_digits)} \\times 10^' + '{' +  f'{test_statistic_magnitude}' + '}$'
+
+    # Font size
+    plt.rcParams.update({'font.size': 13})
+
+    # Define figure
+    fig = plt.figure(figsize=(8, 6))
+    gs = gridspec.GridSpec(1,1)
+    ax = plt.subplot(gs[0])
+
+    # Calculate zoomed in portion of data 
+    x_axis_zoomed = []
+    y_axis1_zoomed = []
+    y_axis2_zoomed = []
+    
+    # format zoomed subplot points 
+    for x in range(0, len(x_axis)):
+        if x_axis[x] >= 4 and x_axis[x] <= 6:
+            x_axis_zoomed.append(x_axis[x])
+            y_axis1_zoomed.append(y_axis1[x])
+            y_axis2_zoomed.append(y_axis2[x])
+
+    # Seperate between testing cases
+    if test == True:
+        plt.xlim(1,2)
+        ticks_labels = []
+        for x in range(10, 21):
+            ticks_labels.append(x/10)
+        plt.xticks(ticks_labels, ticks_labels)
+
+        # vertical grey lines
+        for value in range(10, 21):
+            plt.axvline(x=value / 10, linewidth=0.75, color='grey', linestyle='--')
+
+        # Horizontal line at x2_mean
+        plt.axhline(y=X2_mean, linewidth=1, color='black')
+
+    else:
+        # xlimit
+        plt.xlim(0.8, 10.2)
+
+        # define x ticks
+        ticks_labels = [1,2,3,4,5,6,7,8,9,10]
+        plt.xticks(ticks_labels, ticks_labels)
+        
+        # vertical grey lines
+        for value in range(1, 10 + 1):
+            plt.axvline(x=value, linewidth=0.75, color='grey', linestyle='--')
+
+        # Horizontal line at x2_mean
+        plt.axhline(y=X2_mean, linewidth=1, color='black')
+    
+    # Plot data
+
+    ax.scatter(x_axis, y_axis1, label="Benford's Law", color='royalblue', s=3, zorder=1)
+    ax.scatter(x_axis, y_axis2, label="FR Benford's Law", color='firebrick', s=3, zorder=1)
+
+
+    # Draw lines from main figure to zoomed in subfigure
+    if mode == 'd':
+        x_values_one = [4, 2.2]
+        y_values_one = [X2_mean, 2.05]
+
+        x_values_two = [6, 5]
+        y_values_two = [X2_mean, 2.05]
+
+        plt.plot(x_values_one, y_values_one, linewidth=0.75, color='grey')
+        plt.plot(x_values_two, y_values_two, linewidth=0.75, color='grey')
+
+    elif mode == 'X_2':
+        x_values_one = [4, 2.65]
+        y_values_one = [X2_mean, 70]
+
+        x_values_two = [6, 5.4]
+        y_values_two = [X2_mean, 80]
+
+        plt.plot(x_values_one, y_values_one, linewidth=0.75, color='grey')
+        plt.plot(x_values_two, y_values_two, linewidth=0.75, color='grey')
+
+    elif mode == 'A':
+        x_values_one = [4, 2.2]
+        y_values_one = [X2_mean, 33]
+
+        x_values_two = [6, 5]
+        y_values_two = [X2_mean, 33.5]
+
+        plt.plot(x_values_one, y_values_one, linewidth=0.75, color='grey')
+        plt.plot(x_values_two, y_values_two, linewidth=0.75, color='grey')
+
+    #Format tick labels in scientific notation
+    # yticks = ax.get_yticks()
+    # print(yticks)
+
+    # #Find first non-zero integer
+    # lower_index = 0
+    # for x in range(0, len(yticks)):
+    #     if yticks[x] > 0:
+    #         lower_index = x
+    #         break
+    
+    # # Compute difference in magnitude 
+    # mag_diff = math.floor(np.log10(yticks[-1])) - math.floor(np.log10(math.floor(yticks[lower_index])))
+    
+    # # Compute magnitude to report on ylabel
+    # mean_mag_diff = math.floor(np.log10(yticks[lower_index])) + mag_diff
+    # report_mag_diff = f'10^{mean_mag_diff}'
+    # # print(report_mag_diff)
+    
+    # # Divide x ticks by this magnitude to obtain fractional part
+    # yticks_fractional = yticks / (10**mean_mag_diff)
+    # # print(yticks_fractional)
+    
+    # # Set fractional ticks to tick labels
+    # plt.yticks(yticks[lower_index - 1:-1], yticks_fractional[lower_index - 1:-1])
+
+    # if mode == 'd':
+    #     # label axis for d star
+    #     plt.xlabel("b coefficent")
+    #     plt.ylabel(r"$d^*$ (${}$)".format(report_mag_diff))
+
+    # elif mode == 'X_2':
+    #     # label axis for chi squared
+    #     plt.xlabel("b coefficent")
+    #     plt.ylabel(r"$\chi^2$ (${}$)".format(report_mag_diff))
+
+    # elif mode == 'A':
+    #     # label axis for A squared
+    #     plt.xlabel("b coefficent")
+    #     plt.ylabel(r"$A^2$ (${}$)".format(report_mag_diff))
+
+
+    if mode == 'd':
+        # label axis for d star
+        plt.xlabel("b coefficent")
+        plt.ylabel(r"$d^*$")
+
+    elif mode == 'X_2':
+        # label axis for chi squared
+        plt.xlabel("b coefficent")
+        plt.ylabel(r"$\chi^2$")
+
+    elif mode == 'A':
+        # label axis for A squared
+        plt.xlabel("b coefficent")
+        plt.ylabel(r"$A^2$")
+    # Define Legend 
+    patch = []
+    # handles, labels = ax.get_legend_handles_labels()
+    patch.append(mpatches.Patch(color='royalblue', label='Benford\'s Law'))
+    patch.append(mpatches.Patch(color='firebrick', label='FR Benford\'s Law'))
+
+    if mode == 'd':
+        patch.append(mpatches.Patch(color='Black', label=r'Mean $d^*$ FR = {}'.format(test_statistic_format)))
+    elif mode == 'X_2':
+        patch.append(mpatches.Patch(color='Black', label=r'Mean $\chi^2$ FR = {}'.format(test_statistic_format)))
+    elif mode == 'A':
+        patch.append(mpatches.Patch(color='Black', label=r'Mean $A^2$ FR = {}'.format(test_statistic_format)))
+
+
+
+     
+
+    plt.legend(handles=patch, loc='best')
+
+    # location of zoomed portion
+    # test = True
+    if test != True:
+        if mode == 'd':
+            # sub_axes = plt.axes([.55,.4,.3,.3])
+            sub_axes = plt.axes([.24,.26,.25,.25])
+            plt.ylim(0, 2)
+        elif mode == 'X_2':
+            # sub_axes = plt.axes([.5,.3,.35,.35])
+            sub_axes = plt.axes([.27,.22,.25,.25])
+            plt.ylim(0, 15)
+        elif mode == 'A':
+            # sub_axes = plt.axes([.5,.3,.35,.35])
+            sub_axes = plt.axes([.24,.22,.25,.25])
+            plt.ylim(0, 2.5)
+    
+        # plot zoomed portion 
+        sub_axes.scatter(x_axis_zoomed, y_axis1_zoomed, color='royalblue', s=3)
+        sub_axes.scatter(x_axis_zoomed, y_axis2_zoomed, color='firebrick', s=3)
+        
         # Horizontal line at x2_mean
         plt.axhline(y=X2_mean, linewidth=1, color='black')
         
@@ -574,63 +778,8 @@ def plot_result(x_axis, y_axis1, y_axis2, mode, test):
 
 
 
-def main(mode):
-    
-    if mode[0] in ['1', '2']:
-        # Generate Benford set 
-        generate_benford_set_from_py_program()
-        synthetic_benford_set = import_process_benford_set()
-
-        # Setup variables
-        b_values = []
-        test_statistic = []
-        test_statistic_finite_range = []
-
-        for x in range(0, 1000):
-            # Randomly select b variable in [1, 10)
-            b = random.uniform(1, 10)
-            b_values.append(b)
-            
-            
-            # Split benford set up to b * 10 ** 5
-            for x in range(len(synthetic_benford_set) - 1, 0, -1):
-                if float(synthetic_benford_set[x]) < b * 10**5:
-                    split_benford_set = synthetic_benford_set[0:x]
-                    break
-            
-            if mode[1:] == 'X_2':
-                # Compute X^2 statistic using ordinary second digit test
-                test_statistic.append(digit_test(split_benford_set, mode[0], 'X_2'))
-                
-                # Compute X^2 statistic using finite range digit test
-                test_statistic_finite_range.append(benford_finite_range(split_benford_set, f'f{mode[0]}', 'X_2'))
-
-            elif mode[1:] == 'd':
-                # Compute d star statistic using ordinary second digit test
-                test_statistic.append(digit_test(split_benford_set, mode[0], 'd'))
-                
-                # Compute d star statistic using finite range digit test
-                test_statistic_finite_range.append(benford_finite_range(split_benford_set, f'f{mode[0]}', 'd'))
-
-            elif mode[1:] == 'A':
-                # Compute A^2 statistic using ordinary second digit test
-                test_statistic.append(digit_test(split_benford_set, mode[0], 'A'))
-                
-                # Compute A^2 star statistic using finite range digit test
-                test_statistic_finite_range.append(benford_finite_range(split_benford_set, f'f{mode[0]}', 'A'))
-
-            
-        
-        for y in range(0, len(b_values)):
-            print(b_values[y], test_statistic[y], test_statistic_finite_range[y])
-
-        # Append to file
-        with open(sys.argv[2], 'a') as f:
-            for x in range(0, len(b_values)):
-                f.write(f"{b_values[x]},{test_statistic[x]},{test_statistic_finite_range[x]}\n")
-
-    elif mode[0] == 'g':
-
+if __name__ == '__main__':
+    if sys.argv[1] == 'plot':
         filename = sys.argv[2]
         # Open contents of filename and write to the list lines
         with open(filename) as f:
@@ -640,17 +789,98 @@ def main(mode):
         Y1 = []
         Y2 = []
 
+        # X^2 example
         for entry in lines:
             
             X.append(float(entry.split(',')[0]))
-            Y1.append(float(entry.split(',')[1]))
-            Y2.append(float(entry.split(',')[2]))
+            Y1.append(float(entry.split(',')[3]))
+            Y2.append(float(entry.split(',')[6]))
 
 
-        plot_result(X, Y1, Y2, mode[1:], False)
+        plot_result_second(X, Y1, Y2, 'A', False)
+    
+    else:
+        # Setup variables
+        b_values = []
+        test_statistic = []
+        test_statistic_finite_range = []
+        test_statistic_string = ''
+        test_statistic_string_FR = ''
 
-    return(0)
+        # Read in data one file at a time. Calculate b and split data accordingly.
+        for filenumber in range(0, 1000):
+            raw_dataset = []
+            raw_dataset = import_process_benford_set(f'/home/odestorm/Documents/physics_project/weekly_reports/week14/brute_force_data_sets/set_{str(filenumber)}.txt')
+            # print(raw_dataset[-100:], '\n')
+            # Order dataset from lowest to highest
+            raw_dataset = sorted(raw_dataset)
+
+            
+            # compute b and split dataset accordingly
+            b = random.uniform(1, 10)
+
+            # Split benford set up to b * 10 ** 5
+            for x in range(len(raw_dataset) - 1, 0, -1):
+                if float(raw_dataset[x]) < b * 10**7:
+                    split_benford_set = raw_dataset[0:x]
+                    break
+
+            split_benford_set = [ str(x) for x in split_benford_set ] 
+            
+            # with open(sys.argv[1], 'w') as f:
+            #     for x in split_benford_set:
+            #         f.write(f"{x}\n")
+            
+            # exit()
+
+            # Compute X^2 statistics 
+
+            # Compute X^2 statistic using ordinary benford law
+            test_statistic_string += str(digit_test(split_benford_set, '2', 'X_2')) + ','
+            
+            # Compute X^2 statistic using finite range digit test
+            test_statistic_string_FR += str(benford_finite_range(split_benford_set, 'f2', 'X_2')) + ','
+
+            # Compute d star statistic using ordinary benford law
+            test_statistic_string += str(digit_test(split_benford_set, '2', 'd')) + ','
+            
+            # Compute d star statistic using finite range digit test
+            test_statistic_string_FR += str(benford_finite_range(split_benford_set, 'f2', 'd')) + ','
+
+        
+            # Compute A^2 statistic using ordinary benford law
+            test_statistic_string += str(digit_test(split_benford_set, '2', 'A'))
+            
+            # Compute A^2 star statistic using finite range digit test
+            test_statistic_string_FR += str(benford_finite_range(split_benford_set, 'f2', 'A')) 
+
+            # print(test_statistic_string, '\n', test_statistic_string_FR)
+
+            # Append to data collection lists
+            test_statistic.append(test_statistic_string)
+            test_statistic_finite_range.append(test_statistic_string_FR)
+            b_values.append(b) 
+
+            # Reset the test statistic string valriables
+            test_statistic_string = ''
+            test_statistic_string_FR = ''
+            split_benford_set = []
+
+        
 
 
-if __name__ == '__main__':
-    main(sys.argv[1])
+        # for y in range(0, len(b_values)):
+        #     print(f'{b_values[y]},{test_statistic[y]},{test_statistic_finite_range[y]}')
+
+        # for x in test_statistic_finite_range:
+        #     print(x)
+
+        # print(b_values)
+
+        # Append to file
+        for x in test_statistic_finite_range:
+            print(x)
+        
+        with open(sys.argv[1], 'a') as f:
+            for x in range(0, len(b_values)):
+                f.write(f"{b_values[x]},{test_statistic[x]},{test_statistic_finite_range[x]}\n")
