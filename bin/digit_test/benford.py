@@ -351,8 +351,8 @@ def finite_range_benford_distribution(data, mode):
                     lambda_b += np.log10(1 + 1/(10*d_1 + d_2))
 
             elif d_2 == b_2:
-                lambda_b += - np.log10(b / (b_1 + 10**(-1) * (d_2 + 1)))
-                for d_1 in range(1, b_1 + 1):
+                lambda_b += np.log10(b / (b_1 + 10**(-1) * d_2))
+                for d_1 in range(1, b_1):
                     lambda_b += np.log10(1 + 1/(10*d_1 + d_2))
 
 
@@ -363,6 +363,7 @@ def finite_range_benford_distribution(data, mode):
             #compute lambda_d (sum in main expression)
             lambda_d = 0
 
+            
             for d_1 in range(1, 10):
                  lambda_d += np.log10(1 + 1/(10*d_1 + d_2))
 
@@ -370,9 +371,9 @@ def finite_range_benford_distribution(data, mode):
             P_D = 1/lambda_c * ((beta - alpha -1) * lambda_d + lambda_a + lambda_b)
             
             # Append to distribution
-            P.append(P_D * size)
+            P.append(round(P_D * size, 4))
 
-        
+        print(P)
         return(P, digit_observed, size)
             
 
@@ -473,7 +474,12 @@ def compute_normalised_residuals(observed, expected):
     for x in range(0, len(yerror)):
         if yerror[x] == 0:
             yerror[x] = 0.01
-        difference.append((observed[x] - expected[x]) / yerror[x])
+
+        #edge case for finite range second digit law
+        if yerror[x] == 0.01 and observed[x] == 1 and expected[x] == 0:
+            difference.append(0)
+        else:
+            difference.append((observed[x] - expected[x]) / yerror[x])
         if abs(difference[x]) > 1:
             y_colours.append('firebrick')
         else:
@@ -486,7 +492,10 @@ def compute_z_statistic(p, p_zero, N):
     denominator = 0
     
     numerator = abs(p - p_zero) - (1 / (2*N))
-    denominator = math.sqrt((p_zero * (1 - p_zero)) / N)
+    try:
+        denominator = math.sqrt((p_zero * (1 - p_zero)) / N)
+    except:
+        denominator = 0
     try:
         return(float(numerator / denominator))
     except:
@@ -684,7 +693,8 @@ def compute_dstar(p, b, size):
 
 def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar, mode):
     #increase font size
-    plt.rcParams.update({'font.size': 12})
+    plt.rcParams.update({'font.size': 13})
+    # plt.rcParams['text.usetex'] = True
 
     difference, y_colours, yerror = compute_normalised_residuals(frequency, benford_freq)
 
@@ -704,10 +714,35 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
 
     ax0.bar(bins, frequency, width, color='grey', label="Observed Occurrence", zorder=-1)
 
-    plt.xlabel("Digit Value")
-    plt.ylabel("Observed Occurence")
-    plt.xticks(bins, "")
+    #Format tick labels in scientific notation
+    yticks = ax0.get_yticks()
+    print(yticks)
 
+    #Find first non-zero integer
+    lower_index = 0
+    for x in range(0, len(yticks)):
+        if yticks[x] > 0:
+            lower_index = x
+            break
+    
+    # Compute difference in magnitude 
+    mag_diff = math.floor(np.log10(yticks[-1])) - math.floor(np.log10(math.floor(yticks[lower_index])))
+    
+    # Compute magnitude to report on ylabel
+    mean_mag_diff = math.floor(np.log10(yticks[lower_index])) + mag_diff
+    report_mag_diff = f'10^{mean_mag_diff}'
+    # print(report_mag_diff)
+    
+    # Divide x ticks by this magnitude to obtain fractional part
+    yticks_fractional = yticks / (10**mean_mag_diff)
+    # print(yticks_fractional)
+    
+    # Set fractional ticks to tick labels
+    plt.yticks(yticks[lower_index - 1:-1], yticks_fractional[lower_index - 1:-1])
+
+    plt.xlabel("Digit Value")
+    plt.ylabel(r"Observed Occurence (${}$)".format(report_mag_diff))
+    plt.xticks(bins, "")
 
     if mode == '12':
         plt.xlim(9,100)

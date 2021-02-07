@@ -97,7 +97,7 @@ def pronounce(set, params):
         if rand_number <= rate:
             set[x] = str(set[x])
             temp_string = set[x][0:index - 1] + digit + set[x][index:]
-            print(temp_string)
+            # print(temp_string)
             set[x] = float(temp_string)
 
     return(set)
