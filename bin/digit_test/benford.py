@@ -715,8 +715,9 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
     ax0.bar(bins, frequency, width, color='grey', label="Observed Occurrence", zorder=-1)
 
     #Format tick labels in scientific notation
+    
     yticks = ax0.get_yticks()
-    print(yticks)
+    # print(yticks)
 
     #Find first non-zero integer
     lower_index = 0
@@ -724,24 +725,33 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
         if yticks[x] > 0:
             lower_index = x
             break
-    
-    # Compute difference in magnitude 
-    mag_diff = math.floor(np.log10(yticks[-1])) - math.floor(np.log10(math.floor(yticks[lower_index])))
-    
-    # Compute magnitude to report on ylabel
-    mean_mag_diff = math.floor(np.log10(yticks[lower_index])) + mag_diff
-    report_mag_diff = f'10^{mean_mag_diff}'
-    # print(report_mag_diff)
-    
-    # Divide x ticks by this magnitude to obtain fractional part
-    yticks_fractional = yticks / (10**mean_mag_diff)
-    # print(yticks_fractional)
-    
-    # Set fractional ticks to tick labels
-    plt.yticks(yticks[lower_index - 1:-1], yticks_fractional[lower_index - 1:-1])
 
+    # Only format in scientfic notation if the lowest tick is greater than 1000
+    if lower_index >=1000:
+        # Compute difference in magnitude 
+        mag_diff = math.floor(np.log10(yticks[-1])) - math.floor(np.log10(math.floor(yticks[lower_index])))
+        
+        # Compute magnitude to report on ylabel
+        mean_mag_diff = math.floor(np.log10(yticks[lower_index])) + mag_diff
+        report_mag_diff = f'10^{mean_mag_diff}'
+        # print(report_mag_diff)
+        
+        # Divide x ticks by this magnitude to obtain fractional part
+        yticks_fractional = yticks / (10**mean_mag_diff)
+        # print(yticks_fractional)
+        
+        # Set fractional ticks to tick labels
+        plt.yticks(yticks[lower_index - 1:-1], yticks_fractional[lower_index - 1:-1])
+
+    else: 
+        report_mag_diff = ""
+
+    # Format axis labels
     plt.xlabel("Digit Value")
-    plt.ylabel(r"Observed Occurence (${}$)".format(report_mag_diff))
+    if report_mag_diff != "":
+        plt.ylabel(r"Observed Occurence (${}$)".format(report_mag_diff))
+    else:
+        plt.ylabel(r"Observed Occurence")
     plt.xticks(bins, "")
 
     if mode == '12':
@@ -852,20 +862,31 @@ def plot_heat_map(frequency, benford_freq, m):
     elif m[0:2] == '23':
         y_axis = np.arange(0, 11, 1)
         x_axis = np.arange(0, 11, 1)
+        print(len(benford_freq), len(frequency))
 
     values_to_plot = []
     row = []
     
     # 12 heatmap test non-normalised
-    if m == '12h':
+    if m in ['12h', '23h']:
+        # print(benford_freq)
         #Compute absolute difference as numpy array to plot
-        for x in range(1,10):
+
+        if m[0:2] == '12':
+            lower_x = 1
+        elif m[0:2] == '23':
+            lower_x = 0
+
+
+        for x in range(lower_x,10):
             for y in range(0,10):
-                row.append(int(frequency[int(str(x) + str(y)) - 10] - benford_freq[int(str(x) + str(y)) - 10]))
+                # print(str(x)+str(y))
+                # print(frequency[int(str(x) + str(y)) - 10] - benford_freq[int(str(x) + str(y)) - 10])
+                row.append(round(frequency[int(str(x) + str(y)) - 10] - benford_freq[int(str(x) + str(y)) - 10], 1))
 
             array = np.asarray(row)
 
-            if x == 1:
+            if x == lower_x:
                 values_to_plot = array
             else:
                 values_to_plot = np.vstack((values_to_plot, array))
@@ -873,24 +894,9 @@ def plot_heat_map(frequency, benford_freq, m):
         limit = roundup(max(abs(np.amin(values_to_plot)), np.amax(values_to_plot)))
         
 
-    # 12 normalised heatmap
-    # elif m == '12hn':
-    #     for i in range(0, len(frequency)):
-    #         frequency[i] = int(round(frequency[i], 0))
-    #     print(frequency)
-    #     row = []
-    #     for x in range(0, len(frequency) - 9, 10):
-    #         row.append(np.rint(frequency[x:x + 10]))
-    #         array = np.asarray(row)
-    #         if x == 0:
-    #             values_to_plot = array
-    #         else:
-    #             values_to_plot = np.vstack((values_to_plot, array))
-    #         row = []
-        
-    #     limit = math.ceil(max(abs(np.amin(values_to_plot)), np.amax(values_to_plot)))
 
-    # 23 normalised heatmap
+
+    # 12 and 23 normalised heatmap
     elif m == '23hn' or m == '12hn':
         for i in range(0, len(frequency)):
             frequency[i] = int(round(frequency[i], 0))
@@ -963,24 +969,25 @@ def heatmap(limit, data, row_labels, col_labels, mode, ax=None, cbar_kw={}, cbar
 
     # Create colorbar
 
-    if mode == '12h':
+    if mode in ['12h', '23h']:
         cbarlabel = 'Deviation'
         ticks = []
-        for x in range(-limit, limit, int(limit/6)):
-            ticks.append(x)
-    # elif mode == '12hn':
-    #     cbarlabel = 'Normalised Deviation'
-    #     ticks = []
-    #     lim = roundup(limit)
-    #     for x in range(-lim, lim, 10):
-    #         ticks.append(x)
+        lim = roundup(limit)
+        base = 1 - math.floor(np.log10(lim))
 
+        for x in range(0, limit + 1, int(round(lim/3, base))):
+            ticks.append(x)
+
+        for i in range(1, len(ticks)):
+            ticks.append(-ticks[i])
+   
     elif mode == '23hn' or mode == '12hn':
         cbarlabel = 'Normalised Deviation'
         ticks = []
         lim = roundup(limit)
+        base = 1 - math.floor(np.log10(lim))
 
-        for x in range(0, lim, int(round(lim/3, -1))):
+        for x in range(0, lim + 1, int(round(lim/3, base))):
             ticks.append(x)
 
         
@@ -1002,6 +1009,7 @@ def heatmap(limit, data, row_labels, col_labels, mode, ax=None, cbar_kw={}, cbar
         ax.set_xticks(np.arange(data.shape[0]))
         ax.set_yticks(np.arange(data.shape[0]))
     # ... and label them with the respective list entries.
+    # print(col_labels)
     ax.set_xticklabels(col_labels)
     ax.set_yticklabels(row_labels)
 
@@ -1129,7 +1137,7 @@ def main(mode):
     data = input_numbers(filename)
     print("[Debug] Starting First Digit Analysis")
 
-    if mode in ['1', '12', '12h', '12hn', '23', '23hn', '2']:
+    if mode in ['1', '12', '12h', '12hn', '23', '23h', '23hn', '2']:
         data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic = digit_test(data, mode)
         
         bins_to_plot = []
@@ -1140,7 +1148,7 @@ def main(mode):
             bins_to_plot = np.arange(0, 10, 1)
         elif mode in ['12', '12h', '12hn']:
             bins_to_plot = np.arange(10, 100, 1)
-        elif mode in ['23', '23hn']:
+        elif mode in ['23', '23hn', '23h']:
             for x in range(0, 100):
                 bins_to_plot.append(x)
     
@@ -1173,10 +1181,13 @@ def main(mode):
     print("[Debug] Generating Plot of the data.")
     if mode in ['1','f1','f2','2','12']:
         plot_bar_chart(bins_to_plot, data_raw, benford_raw, data_size, von_mises_statistic[2], d_star_statistic[1], mode)
-    elif mode in ['12h', '12hn']:
-        if 'h' in mode:
+    
+    elif mode in ['12h', '12hn', '23h', '23hn']:
+        if 'hn' in mode:
             norm_residuals, null, null = compute_normalised_residuals(data_raw, benford_raw)
-        plot_heat_map(norm_residuals, None, mode)
+            plot_heat_map(norm_residuals, benford_percent, mode)
+        else:
+            plot_heat_map(data_raw, benford_raw, mode)
     
     print("[Debug] Output complete. Exiting.")
     exit()
