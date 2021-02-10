@@ -693,7 +693,7 @@ def compute_dstar(p, b, size):
 
 def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar, mode):
     #increase font size
-    plt.rcParams.update({'font.size': 13})
+    plt.rcParams.update({'font.size': 13.5})
     # plt.rcParams['text.usetex'] = True
 
     difference, y_colours, yerror = compute_normalised_residuals(frequency, benford_freq)
@@ -724,10 +724,12 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
     for x in range(0, len(yticks)):
         if yticks[x] > 0:
             lower_index = x
+            lower_index_value = yticks[x]
             break
 
     # Only format in scientfic notation if the lowest tick is greater than 1000
-    if lower_index >=1000:
+    # print(lower_index)
+    if lower_index_value >=1000:
         # Compute difference in magnitude 
         mag_diff = math.floor(np.log10(yticks[-1])) - math.floor(np.log10(math.floor(yticks[lower_index])))
         
@@ -749,9 +751,9 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
     # Format axis labels
     plt.xlabel("Digit Value")
     if report_mag_diff != "":
-        plt.ylabel(r"Observed Occurence (${}$)".format(report_mag_diff))
+        plt.ylabel(r"Observed Occurrence (${}$)".format(report_mag_diff))
     else:
-        plt.ylabel(r"Observed Occurence")
+        plt.ylabel(r"Observed Occurrence")
     plt.xticks(bins, "")
 
     if mode == '12':
@@ -770,10 +772,10 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
     else:
         patch = []
         handles, labels = ax0.get_legend_handles_labels()
-        patch.append(mpatches.Patch(color='green', label=r'$|\sigma|$ < 1'))
-        patch.append(mpatches.Patch(color='firebrick', label=r'$|\sigma|$ > 1'))
+        patch.append(mpatches.Patch(color='green', label=r'$|\sigma|$ < 1,    ${}$'.format(dstar)))
+        patch.append(mpatches.Patch(color='firebrick', label=r'$|\sigma|$ > 1,    $N={}$'.format(str(dataset_size))))
         #patch.append(mpatches.Patch(color='white', label=r'${}$'.format(von_mises)))
-        patch.append(mpatches.Patch(color='none', label=r'${}$, $N={}$'.format(dstar, str(dataset_size))))
+        # patch.append(mpatches.Patch(color='none', label=r'${}$, $N={}$'.format(dstar, str(dataset_size))))
         #patch.append(mpatches.Patch(color='white', label=r'$N = {}$'.format(str(dataset_size))))
 
     for x in patch:
@@ -851,8 +853,8 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
 
 
 def plot_heat_map(frequency, benford_freq, m):
-    #increase font size
-    plt.rcParams.update({'font.size': 12})
+    # increase font size
+    plt.rcParams.update({'font.size': 13.5})
 
     #Setup x and y axis arrays
 
