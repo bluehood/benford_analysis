@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import sys
+import re
 
 def import_report(input_filename): 
     # Input data from argv[1] into input_data (newline delimited)
@@ -38,6 +39,8 @@ def extract_rows_contain_years(sec_report_subset):
                 for year_search_parameter in year_strings_to_search_for:
                     string_identified = re.search(year_search_parameter, sec_report_subset[x])
                     year_extracted = string_identified.group(1)
+                    if year_extracted != None:
+                        year_extracted = year_extracted.replace(' (Restated)', '')
 
                     # year extracted succesfully 
                     if len(str(year_extracted)) == 4:
@@ -297,17 +300,25 @@ if __name__ == '__main__':
     # sec_report_2013_sections = [['columns', 10905, 11971]] 
     
 
-    # General development of the business of AIG on a consolidated basis 526 - 1425 
-    # Identifiable assets, revenues and income derived from operations in the United States and Canada and from operations in other countries 1575 - 2289
-    # Analysis of Consolidated Net Losses and Loss Expense Reserve Development 4706 - 6171
-    # Analysis of Consolidated Losses and Loss Expense Reserve Development Excluding Asbestos and Environmental Losses and Loss Expense Reserve Development 3125 - 4585
-    # Reconciliation of Net Reserves for Losses and Loss Expenses 6234 - 6492
-    # Insurance Investment Operation 8454 - 9007
-    # SELECTED CONSOLIDATED FINANCIAL DATA 10905 - 11971
+    # General development of the business of AIG on a consolidated basis 526 - 1425     933 - 1877
+    # Identifiable assets, revenues and income derived from operations in the United States and Canada and from operations in other countries 1575 - 2289   NA
+    # Analysis of Consolidated Net Losses and Loss Expense Reserve Development 4706 - 6171 (2526-3358 3358-4299 4299-4698)
+    # Analysis of Consolidated Losses and Loss Expense Reserve Development Excluding Asbestos and Environmental Losses and Loss Expense Reserve Development 3125 - 4585 (4815-5647 5647-6523 6588-6987)
+    # Reconciliation of Net Reserves for Losses and Loss Expenses 6234 - 6492   7048  - 7319
+    # Insurance Investment Operation 8454 - 9007    7698 - 8138
+    # SELECTED CONSOLIDATED FINANCIAL DATA 10905 - 11971    10127 - 11166
 
-    sec_report_2013_sections = [['columns', 526, 1425], ['columns', 1575, 2289], ['columns', 3125, 4585], ['columns', 4706, 6171], ['columns', 6234, 6492], ['rows', 8454, 9007], ['columns', 10905, 11971]]
+    # Total data extraction
+    
+    # sec_report_2013_sections = [['columns', 526, 1425], ['columns', 1575, 2289], ['columns', 3125, 4585], ['columns', 4706, 6171], ['columns', 6234, 6492], ['rows', 8454, 9007], ['columns', 10905, 11971]]
+    # sec_report_2015_sections = [['columns', 933, 1877], ['columns', 2526, 3358], ['columns', 3358, 4299], ['columns', 4299, 4698], ['columns', 4815, 5647], ['columns', 5647, 6523], ['columns', 6588, 6987], ['columns', 7048, 7319], ['rows', 7698, 8138], ['columns', 10127, 11166]]
 
-    for section in sec_report_2013_sections:
+    # Selected identical data portions
+    sec_report_2013_sections = [['columns', 526, 1425], ['columns', 3125, 4585], ['columns', 4706, 6171], ['columns', 6234, 6492], ['rows', 8454, 9007], ['columns', 10905, 11971]]
+    sec_report_2015_sections = [['columns', 933, 1877], ['columns', 2526, 3358], ['columns', 3358, 4299], ['columns', 4815, 5647], ['columns', 5647, 6523], ['columns', 7048, 7319], ['rows', 7698, 8138], ['columns', 10127, 11166]]
+
+
+    for section in sec_report_2015_sections:
         if section[0] == 'columns':
             local_data_extracted, local_years = extract_columns_contain_years(sec_report_raw[section[1]:section[2]])
             extracted_data_arranged_year = add_to_global_dataset(extracted_data_arranged_year, local_data_extracted, local_years)

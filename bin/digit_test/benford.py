@@ -57,7 +57,7 @@ def input_numbers(input_filename):
 
     #Remove first entry of data if this entry contains a label for a column.
     try:
-        int(input_data[0])
+        float(input_data[0])
     except:
         del input_data[0]
 
@@ -73,7 +73,7 @@ def input_numbers(input_filename):
     input_data_sanitised = input_data
 
     for x in range(0, len(input_data)):
-        input_data_sanitised[x] = input_data[x].replace('.','')
+        input_data_sanitised[x] = input_data[x].replace('.','').replace('-','')
         while input_data_sanitised[x][0] == "0":
                 input_data_sanitised[x] = input_data_sanitised[x][1:]
                 if input_data_sanitised[x] == '':
@@ -438,7 +438,10 @@ def refine_finite_range(lowerbound, upperbound, dataset, mode):
         digit_frequency_observed = [0] * 9
 
         for x in dataset_refined:
-            digit_frequency_observed[int(str(x)[0]) - 1] += 1
+            try:
+                digit_frequency_observed[int(str(x)[0]) - 1] += 1
+            except:
+                pass
 
     elif mode == 'f2':
         digit_frequency_observed = [0] * 10
@@ -876,15 +879,17 @@ def plot_heat_map(frequency, benford_freq, m):
 
         if m[0:2] == '12':
             lower_x = 1
+            indent = 10
         elif m[0:2] == '23':
             lower_x = 0
+            indent = 0
 
 
         for x in range(lower_x,10):
             for y in range(0,10):
                 # print(str(x)+str(y))
                 # print(frequency[int(str(x) + str(y)) - 10] - benford_freq[int(str(x) + str(y)) - 10])
-                row.append(round(frequency[int(str(x) + str(y)) - 10] - benford_freq[int(str(x) + str(y)) - 10], 1))
+                row.append(round(frequency[int(str(x) + str(y)) - indent] - benford_freq[int(str(x) + str(y)) - indent], 1))
 
             array = np.asarray(row)
 
@@ -1166,6 +1171,7 @@ def main(mode):
         data_size = len(data)
     
     data_size = len(data)
+    
     #Output results
     print("[Debug] Analysis complete. Outputing results.")
     print("\n\n###--- Analysis for", filename, "---###\n")
