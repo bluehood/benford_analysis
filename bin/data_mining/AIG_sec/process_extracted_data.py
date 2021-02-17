@@ -33,13 +33,14 @@ if __name__ == '__main__':
     # import dataset 
     raw_data = import_data(sys.argv[1])
     processed_data = []
-
+    years_to_extract = []
     # Define the years to extract 
-    years_to_extract = ['2000', '2001', '2002', '2003']
+    # years_to_extract = ['2000', '2001', '2002', '2003']
 
-    # for x in range(1993, 2004 + 1):
-    #     years_to_extract.append(str(x))
-    # years_to_extract.append('Misc')
+    
+    for x in range(1993, 2004 + 1):
+        years_to_extract.append(str(x))
+    years_to_extract.append('Misc')
 
     # Determine the index at which each year we are interested in is located 
     years_index = []
