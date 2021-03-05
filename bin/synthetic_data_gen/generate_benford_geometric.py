@@ -4,6 +4,7 @@ import numpy as np
 
 def main(savefile, size, lowerbound, upperbound):
     benford_set = []
+    size = size - 1
     # Check that the difference is an integer value
     if np.log10(upperbound / lowerbound) % 1 != 0.0:
         print(f'[Fatal] log10({upperbound} / {lowerbound}) is not an integer. Exiting.')

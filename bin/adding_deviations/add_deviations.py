@@ -133,7 +133,7 @@ def rounding(set, params):
 def main(mode, base_set, dev_set, parameters):
     # import data from base_set
     data = input_numbers(base_set)
-    
+    print(parameters)
     # set the mode of operation
     if mode == 'noise':
         modified_set = introduce_noise(data, parameters)

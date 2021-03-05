@@ -3,6 +3,8 @@ import sys
 import re
 import requests
 from subprocess import call
+import random
+import string
 
 def import_report(input_filename): 
     # Input data from argv[1] into input_data (newline delimited)
@@ -115,8 +117,9 @@ if __name__ == '__main__':
     # variable definition
     extracted_data_directory = sys.argv[2]
     extracted_data = []
+    rejected_data = []
     extracted_data_sanitised = []
-    strings_to_search_for = ['><FONT size="1">', '><B><FONT size="1">', '><FONT size="2">', '><B><FONT size="2">']
+    
 
     # read in data file containing all uri's to download and evaluate 
     uri_to_download = import_report(sys.argv[1])
@@ -124,45 +127,54 @@ if __name__ == '__main__':
     # proceed for each uri we download the file, extract the data and remove the file (space concerns)
 
     for current_uri in uri_to_download:
+        extracted_data = []
+        rejected_data = []
         # download our file to analyse
         download_file(current_uri, '/tmp/current_sec_report.txt')
         sec_report_raw = import_report('/tmp/current_sec_report.txt')
-        extracted_data = []
         
         for line in sec_report_raw:
-            for search_parameter in strings_to_search_for:
-                if search_parameter in line:
-                    string_identified = re.search('">(.*)</FONT', line)
+            # Find all values between html tags
+            strings_to_search_for = [r'"2">(.*)', r'"2">(.*)</', r'"1">(.*)', r'"1">(.*)</', r'"3">(.*)', r'"3">(.*)</']
+            
+            for i in strings_to_search_for:
+                string_identified = re.findall(i, line)
+                if string_identified != []:
+                    break
+                
+            
+            # print(string_identified)
+            # continue
+            # if there is a value determine if it is numerical or not. 
+            
+            if string_identified != []:
+                for datapoint_entry in string_identified:
+                    # remove html elements from the result
+                    datapoint_extracted = datapoint_entry.split('<')[0].split('>')[0]
+                    # convert to integer representation by removing special characters
+                    datapoint_extracted = datapoint_extracted.replace('(', '-')
+                    for i in [')', ',', '%', '$', ' ', '&#9;']:
+                        datapoint_extracted = datapoint_extracted.replace(i, '')
 
-                    # exit for loop if no data point is found. This also helps avoid columns that span multiple lines
-                    if string_identified == None:
-                        break
-
-                    datapoint_extracted = string_identified.group(1)
-                    if datapoint_extracted == '':
-                        break
-
-                    # process datapoint. Negative if if starts with (
-                    datapoint_extracted = datapoint_extracted.replace('(', '-').replace(',','').replace('%', '')
-                    # print(int(datapoint_extracted))
-                    
+                    # determine if the datapoint is numerical or not
+                    # print(datapoint_extracted)
                     try:
-                        # print(float(datapoint_extracted))
                         float(datapoint_extracted)
                         extracted_data.append(datapoint_extracted)
                     except:
-                        # if datapoint_extracted in ['&#150;', '&nbsp;']:
-                        #     extracted_data.append('')
-                        pass
+                        rejected_data.append(datapoint_extracted)
+                    
+            else:
+                continue
 
-                    break
-        
-        # Remove years which are unimportant to the data 
-        # Columns
-        extracted_data = remove_column_years(extracted_data)
-        
         # write data to file
-        save_file = extracted_data_directory + '/' + current_uri.split('/')[-1].split('.')[0] + '.txt'
+        letters = string.ascii_lowercase
+        save_file = extracted_data_directory + '/' + current_uri.split('/')[-1].split('.')[0] + ''.join(random.choice(letters) for i in range(10)) + '.txt'
+        print(f'[Debug] saving extracted data to {save_file}')
         export_results(save_file, extracted_data)
-        extracted_data = []
+
+        # for x in range(0, 200):
+        #     print(extracted_data[x])
+        
+        # print(len(extracted_data))
         

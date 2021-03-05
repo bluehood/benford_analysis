@@ -79,7 +79,7 @@ def input_numbers(input_filename):
                 if input_data_sanitised[x] == '':
                     break
         if len(input_data_sanitised[x]) == 1:
-            input_data_sanitised[x] = input_data_sanitised[x] + "0"
+            input_data_sanitised[x] = input_data_sanitised[x]
 
     # Remove all null entries from input_data_sanitised
     input_data_sanitised = ' '.join(input_data_sanitised).split()

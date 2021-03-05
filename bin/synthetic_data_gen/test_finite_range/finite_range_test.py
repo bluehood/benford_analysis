@@ -27,7 +27,13 @@ def import_process_benford_set():
         lines = f.read().splitlines()
     return(lines)
 
+def export_results(export_filename, sec_report_extracted_data):
+    # Write to file
+    with open(export_filename, 'w') as f:
+        for item in sec_report_extracted_data:
+            f.write("%s\n" % item)
 
+    return(0)
 
 
 
@@ -593,10 +599,17 @@ def main(mode):
             
             
             # Split benford set up to b * 10 ** 5
-            for x in range(len(synthetic_benford_set) - 1, 0, -1):
-                if float(synthetic_benford_set[x]) < b * 10**5:
-                    split_benford_set = synthetic_benford_set[0:x]
+            for y in range(len(synthetic_benford_set) - 1, 0, -1):
+                if float(synthetic_benford_set[y]) < b * 10**5:
+                    split_benford_set = synthetic_benford_set[0:y]
                     break
+            
+            if x >= 0 and x < 10:
+                print("Here")
+                export_results(f'/tmp/generate_benford_output_{str(x)}.txt', split_benford_set)
+                call(["benford.py", f'/tmp/generate_benford_output_{str(x)}.txt', '1',f'/tmp/fr_benford_output_{str(x)}.png'])
+            
+            continue
             
             if mode[1:] == 'X_2':
                 # Compute X^2 statistic using ordinary second digit test
