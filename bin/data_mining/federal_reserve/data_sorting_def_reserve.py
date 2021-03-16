@@ -1,3 +1,9 @@
+#!/usr/bin/python3
+
+def usage():
+    print(f'Process federal reserve public releases downloaded from https://www.federalreserve.gov/releases/lbr/ for consolidated and domestic assets of the largest commercial banks. The data has aready been downloaded and is stored locally before processing using fed_reserve.py.')
+    return(0)
+
 # read and sanitise dataset
 def read_san_data_from_file(input_file):
     # read in all data from file
@@ -101,4 +107,5 @@ def main():
     return(0)
 
 if __name__ == '__main__':
+    usage()
     main()

@@ -1,4 +1,9 @@
+#!/usr/bin/python3
 import requests
+
+def usage():
+    print(f'Download (and save) federal reserve public releases from https://www.federalreserve.gov/releases/lbr/ for consolidated and domestic assets of the largest commercial banks.')
+    return(0)
 
 # Script to download data about consolidated assets from the Fed Reserves website
 
@@ -26,4 +31,5 @@ def main():
 
 
 if __name__ == '__main__':
+    usage()
     main()
