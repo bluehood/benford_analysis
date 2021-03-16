@@ -23,7 +23,7 @@ def roundup(x):
 
 # print the usage for the program.
 def usage():
-    print("Analyse data and verify conformity with the Benford Distribution. The output includes several goodness-of-fit tests for the data. Commandline argument required are to the text file containing raw data to analyse, the mode of analysis (see below) and the location to save plotted data.\n\n    python3 benford.py <filename> <mode (numeric)> <plot_filename>\n\nModes:\n f1   First Digit Finite Range \n 1    First Digit\n 12   First-Second Digit\n 12h  First-Second Digit with heatmap\n 12hn Normal Residual First-Second Digit with heatmap\n 2    Second Digit")
+    print(f'Analyse data and verify conformity with the Benford Distribution. Output is printed to the screen and contains the Chi sqauared, A squared and d* test statistics for a given Benford digit test. Commandline argument required are to the text file containing raw data to analyse and the mode of analysis (see below).\n\n    {sys.argv[0]} <filename> <mode (numeric)> \n\nModes:\n f1   First Digit Finite Range \n 1    First Digit\n 12   First-Second Digit\n 2    Second Digit\n 23   Second-Third Digit test\n')
     return(0)
 
 

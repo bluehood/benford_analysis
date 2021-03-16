@@ -23,7 +23,7 @@ def roundup(x):
 
 # print the usage for the program.
 def usage():
-    print("Analyse data and verify conformity with the Benford Distribution. The output includes several goodness-of-fit tests for the data. Commandline argument required are to the text file containing raw data to analyse, the mode of analysis (see below) and the location to save plotted data.\n\n    python3 benford.py <filename> <mode (numeric)> <plot_filename>\n\nModes:\n f1   First Digit Finite Range \n 1    First Digit\n 12   First-Second Digit\n 12h  First-Second Digit with heatmap\n 12hn Normal Residual First-Second Digit with heatmap\n 2    Second Digit")
+    print("Analyse data and verify conformity with the Benford Distribution. The output includes several goodness-of-fit tests for the data and a plot of the data is saved to file. Commandline argument required are to the text file containing raw data to analyse, the mode of analysis (see below) and the location to save plotted data.\n\n    python3 benford.py <filename> <mode (numeric)> <plot_filename>\n\nModes:\n f1   First Digit Finite Range \n 1    First Digit\n 12   First-Second Digit\n 12h  First-Second Digit with heatmap\n 12hn Normalised Residual First-Second Digit with heatmap\n 2    Second Digit\n 23h  Second-Third Digit with heatmap\n 23hn Normalised Residual Second-Third Digit with heatmap\n")
     return(0)
 
 
