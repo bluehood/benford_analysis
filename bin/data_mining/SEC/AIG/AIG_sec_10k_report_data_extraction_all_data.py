@@ -4,6 +4,14 @@ import re
 import requests
 from subprocess import call
 
+
+def usage():
+    print(f'Extract financial data from entire report for AIG\'s 10-K reports filed with the SEC in 2003 and 2004 (pre-downloaded). Error correction to remove unwanted values such as dates.\n')
+    print(f'{sys.argv[0]} <Filename containing SEC report URL> <Directory to save extracted data>\n')
+    print(f'<Filename containing SEC report URLs> - filename with a list of URL\'s of the 10-K report to download and process. Must be for AIG.')
+    print(f'<Directory to save extracted data> - the directory to save the processed data. The exact filename is taken from the URL associated to each downloaded file.\n')
+    return(0)
+
 def import_report(input_filename): 
     # Input data from argv[1] into input_data (newline delimited)
     try:
@@ -112,6 +120,7 @@ def add_to_global_dataset(global_set, local_insert, local_years):
     return(global_set)
 
 if __name__ == '__main__':
+    usage()
     # variable definition
     extracted_data_directory = sys.argv[2]
     extracted_data = []

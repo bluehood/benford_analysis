@@ -1,6 +1,13 @@
 #!/usr/bin/python3
 import sys
 
+def usage():
+    print(f'For processed data extract data points relating to certain years.\n')
+    print(f'{sys.argv[0]} <Processed data filename> <Filenname to save refined data>\n')
+    print(f'<Processed data filename> - filename with a list of comma delimited financial data relating to specific years. The is taken as output from AIG_sec_10k_report_data_extraction.py')
+    print(f'<Filename to save refined data> - save output as a list to this file.\n')
+    return(0)
+
 def import_data(input_filename): 
     # Input data from argv[1] into input_data (newline delimited)
     try:
@@ -30,6 +37,7 @@ def export_results(export_filename, export_data):
     return(0)
 
 if __name__ == '__main__':
+    usage()
     # import dataset 
     raw_data = import_data(sys.argv[1])
     processed_data = []

@@ -9,6 +9,15 @@ import string
 from itertools import groupby
 from operator import itemgetter
 
+
+def usage():
+    print(f'Extract consolidated financial data ONLY from entire 10-K report for a general report filed with the SEC. Error correction to remove unwanted values such as dates and page numbers. Compute test statistics for the first and second digit tests. Output saved to file (location specified within code).\n')
+    print(f'{sys.argv[0]} <Filename containing SEC report URL>\n')
+    print(f'<Filename containing SEC report URLs> - filename with a list of URL\'s of the 10-K report to download and process.\n')
+    # print(f'<Directory to save extracted data> - the directory to save the processed data. The exact filename is taken from the URL associated to each downloaded file.\n')
+    return(0)
+
+
 def import_report(input_filename): 
     # Input data from argv[1] into input_data (newline delimited)
     try:
@@ -276,6 +285,7 @@ def data_cleanup(foo):
     return(foo_clean_descend)
 
 if __name__ == '__main__':
+    usage()
     # variable definition
     # extracted_data_directory = '/home/odestorm/Documents/physics_project/weekly_reports/week18/SEC_collection/report_database/'
     extracted_data_directory = '/home/odestorm/Documents/physics_project/weekly_reports/week19/consolidated_financial_data/test/'

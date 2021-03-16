@@ -2,6 +2,13 @@
 import sys
 import re
 
+def usage():
+    print(f'Extract financial data from defined sections with AIG\'s 10-K reports filed with the SEC in 2003 and 2004 (pre-downloaded).\n')
+    print(f'{sys.argv[0]} <SEC report filename> <Extracted data filename>\n')
+    print(f'<SEC report filename> - the local filename of the downloaded 10-K report. Must be for AIG.')
+    print(f'<Extracted data filename> - the local filename to save processed data.\n')
+    return(0)
+
 def import_report(input_filename): 
     # Input data from argv[1] into input_data (newline delimited)
     try:
@@ -282,7 +289,7 @@ def add_to_global_dataset(global_set, local_insert, local_years):
     return(global_set)
 
 if __name__ == '__main__':
-    
+    usage()
     # import sec report from disk in first commandline arguement argv[1]
     sec_report_raw = import_report(sys.argv[1])
 
