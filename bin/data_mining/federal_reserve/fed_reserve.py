@@ -1,6 +1,6 @@
 import requests
 
-# Script to download data about consolidated assets from the Fed Reserves wesbite
+# Script to download data about consolidated assets from the Fed Reserves website
 
 def download_file(url, save_name):
     r = requests.get(url, allow_redirects=True)

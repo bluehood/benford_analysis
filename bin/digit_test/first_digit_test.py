@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import sys
 import math
 import matplotlib.pyplot as plt
@@ -282,7 +282,7 @@ def input_numbers(input_filename):
     except:
         del input_data[0]
 
-    #Remove all null values and leading zeros. Add trailing zero to any entry of length 1. Save this result in input_data_sanitised
+    #Remove all null values and leading zeros. Save this result in input_data_sanitised
     #print("[Debug] Sanitising Input Data")
 
     try:
@@ -299,8 +299,6 @@ def input_numbers(input_filename):
                 input_data_sanitised[x] = input_data_sanitised[x][1:]
                 if input_data_sanitised[x] == '':
                     break
-        if len(input_data_sanitised[x]) == 1:
-            input_data_sanitised[x] = input_data_sanitised[x] + "0"
 
     # Remove all null entries from input_data_sanitised
     input_data_sanitised = ' '.join(input_data_sanitised).split()

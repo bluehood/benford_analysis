@@ -21,14 +21,14 @@ def main(open_file, save_file):
     
     # Sort data and determine fit
     data_to_plot = sorted(data_to_plot)
-    fit = stats.norm.pdf(data_to_plot, np.mean(data_to_plot), np.std(data_to_plot))
+    # fit = stats.norm.pdf(data_to_plot, np.mean(data_to_plot), np.std(data_to_plot))
 
     plt.rcParams.update({'font.size': 11})
     
     # Calcualte pdf and plot
     fig = plt.figure()
     ax = plt.subplot(111)
-    pl.plot(data_to_plot, fit,'--', linewidth=1.5, markersize=0.1, label="Normal Distribution")
+    # pl.plot(data_to_plot, fit,'--', linewidth=1.5, markersize=0.1, label="Normal Distribution")
     pl.xlabel(r'Price Paid / £ $\times 10^3$', size=12)
     pl.ylabel("Normalised Occurence", size=12)
     pl.xlim(0, 500000)

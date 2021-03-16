@@ -78,8 +78,7 @@ def input_numbers(input_filename):
                 input_data_sanitised[x] = input_data_sanitised[x][1:]
                 if input_data_sanitised[x] == '':
                     break
-        if len(input_data_sanitised[x]) == 1:
-            input_data_sanitised[x] = input_data_sanitised[x] + "0"
+        
 
     # Remove all null entries from input_data_sanitised
     input_data_sanitised = ' '.join(input_data_sanitised).split()
@@ -603,7 +602,8 @@ def main(mode):
     
     # print("[Debug] Output complete. Exiting.")
 
-    print(f"{filename.split('/')[-2]},{filename.split('/')[-1][5:9].replace('-', '.')},{X_sqaured},{von_mises_statistic[2]},{d_star_statistic[1]}")
+    # print(f"{filename.split('/')[-2]},{filename.split('/')[-1][5:9].replace('-', '.')},{X_sqaured},{von_mises_statistic[2]},{d_star_statistic[1]}")
+    print(f"{X_sqaured},{von_mises_statistic[2]},{d_star_statistic[1]}")
 
     exit()
 
