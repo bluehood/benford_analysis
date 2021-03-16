@@ -9,6 +9,14 @@ from matplotlib import gridspec
 import matplotlib.patches as mpatches
 from matplotlib import ticker
 
+def usage():
+    print(f'Plot the variation of test statistics over different values of sigma (parameter controlling the strength of deviations introduced into Benford sets).\n')
+    print(f'{sys.argv[0]} <List of comma delimited sigma values and test statistics> <Normalise boolean> <Plot save location>\n')
+    print(f'<List of comma delimited test statistics> - filepath of computed test statistics to plot')
+    print(f'<Normalise boolean> - true or false. If true all test statistics are normalised with respect to their .05 percent significance values.')
+    print(f'<Plot save location> - filepath to save resultant plot. Must be a .png file.')
+    return(0)
+
 def input_numbers(input_filename): 
     # Input data from argv[1] into input_data (newline delimited)
     try:
@@ -94,4 +102,9 @@ def main(base_set, normalise):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2])
+    try:
+        main(sys.argv[1], sys.argv[2])
+    except Exception as e:
+        print(e)
+        usage()
+        exit()

@@ -135,9 +135,9 @@ def main(mode, base_set, dev_set, parameters):
     data = input_numbers(base_set)
     print(parameters)
     # set the mode of operation
+    # if mode == 'noise':
+    #     modified_set = introduce_noise(data, parameters)
     if mode == 'noise':
-        modified_set = introduce_noise(data, parameters)
-    elif mode == 'noise_two':
         modified_set = introduce_noise_two(data, parameters)
     elif mode == 'pro':
         modified_set = pronounce(data, parameters)
@@ -152,13 +152,14 @@ def main(mode, base_set, dev_set, parameters):
 
 
 if __name__ == '__main__':
-    # try:
-    param = []
-    for x in range(4, len(sys.argv)):
-        param.append(sys.argv[x])
+    try:
+        param = []
+        for x in range(4, len(sys.argv)):
+            param.append(sys.argv[x])
 
-    main(sys.argv[1], sys.argv[2], sys.argv[3], param)
+        main(sys.argv[1], sys.argv[2], sys.argv[3], param)
     
-    # except:
-    #     usage()
-    #     exit()
+    except Exception as e:
+        print(e)
+        usage()
+        exit()
