@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import matplotlib.pyplot as plt
+print(f'Plot numberline figure for project presentation.')
 
 plt.rcParams.update({'font.size': 13.5})
 # set up the figure
