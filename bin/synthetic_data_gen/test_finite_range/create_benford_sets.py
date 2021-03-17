@@ -4,6 +4,7 @@ from subprocess import call
 import time
 
 if __name__ == '__main__':
+    print(f'Create one-thousand Benfords sets using brute-force technique. Save these sets to disk.')
     for x in range(0, 1000):
         # create benford set using bruteforce techniques. Save to /home/odestorm/Documents/physics_project/weekly_reports/week14/brute_force_data_sets/
         call(["generate_benford", f'/home/odestorm/Documents/physics_project/weekly_reports/week14/brute_force_data_sets/set_{str(x)}.txt', str(50000), str(4), str(8)])

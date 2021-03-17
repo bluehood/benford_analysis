@@ -35,5 +35,6 @@ if __name__ == '__main__':
     try:
         main(sys.argv[1], int(sys.argv[2]), float(sys.argv[3]), float(sys.argv[4]))
     except:
-         print(f"Usage: {sys.argv[0]} <savefile> <set_size> <lowerbound> <upperbound>")
-         exit()
+        print(f'Create a Benford Set of a given size with a lower and upper bound using geometric series.\n')
+        print(f"Usage: {sys.argv[0]} <savefile> <set_size> <lowerbound> <upperbound>")
+        exit()

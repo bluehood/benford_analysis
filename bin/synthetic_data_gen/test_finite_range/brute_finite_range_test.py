@@ -12,6 +12,12 @@ from subprocess import call
 from sigfig import round
 import random
 
+def usage():
+    print(f'Calculate test statistics for brute-force generated Benford Sets in a randomly selected finite range. There is also the option to plot these test statistics agasint the range considered. (Note the lowerbound is fixed and the upperbound randomly selected.) Note the Benford Sets must be pre-computed using ./create_benford_sets.py and referenced as a static constant in the code on line 820.\n')
+    print(f'To process Benford Set and compute test statistics: {sys.argv[0]} <savefile>')
+    print(f'To plot test statistics: {sys.argv[0]} plot <datafile> <savefile (.png)>\n')
+    return(0)
+
 def import_process_benford_set(filename):
     # filename = location of set to read in
 
@@ -779,6 +785,7 @@ def plot_result_first(x_axis, y_axis1, y_axis2, mode, test):
 
 
 if __name__ == '__main__':
+    usage()
     if sys.argv[1] == 'plot':
         filename = sys.argv[2]
         # Open contents of filename and write to the list lines

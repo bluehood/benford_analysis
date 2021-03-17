@@ -12,6 +12,13 @@ from subprocess import call
 from sigfig import round
 import random
 
+def usage():
+    print(f'Calculate test statistics for Benford Sets generated using geometric series in a randomly selected finite range. There is also the option to plot these test statistics agasint the range considered. (Note the lowerbound is fixed and the upperbound randomly selected.)\n')
+    print(f'To process Benford Set and compute test statistics: {sys.argv[0]} <mode>')
+    print(f'mode: <digit_test><test_statistic> where digit_test is in [1,2] and test_statistic is in [X_2, d, A].\n')
+    print(f'To plot test statistics: {sys.argv[0]} plot <datafile> <savefile (.png)>\n')
+    return(0)
+
 # ------ Generate and Import Bendford set 
 
 # Generate benford set using Python geometric series
@@ -642,7 +649,7 @@ def main(mode):
             for x in range(0, len(b_values)):
                 f.write(f"{b_values[x]},{test_statistic[x]},{test_statistic_finite_range[x]}\n")
 
-    elif mode[0] == 'g':
+    elif mode[0] == 'plot':
 
         filename = sys.argv[2]
         # Open contents of filename and write to the list lines
@@ -666,4 +673,5 @@ def main(mode):
 
 
 if __name__ == '__main__':
+    usage()
     main(sys.argv[1])

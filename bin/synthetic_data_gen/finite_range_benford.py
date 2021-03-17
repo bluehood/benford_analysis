@@ -13,9 +13,10 @@ from sigfig import round
 
 
 def usage():
-    print(sys.argv[0], "file_to_test", "mode", "figure_filename", "lower_limit", "upper_limit")
+    print(f'Synthetic Finite Range Benford Law Test.\n')
+    print(sys.argv[0], "<file_to_test>", "<mode>", "<figure_filename>", "<lower_limit>", "<upper_limit>")
     print("\nModes:\n 2    Second Digit Finite Range")
-    print("\nModes:\n 3    Third Digit Finite Range")
+    print(" 3    Third Digit Finite Range")
     return(0)
 
 
