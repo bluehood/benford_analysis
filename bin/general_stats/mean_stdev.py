@@ -3,7 +3,13 @@ import sys
 
 #usage python3 mean_stdev.py tmp.txt
 
+def usage():
+    print('Calculate the mean and standard deviation of a list of data.')
+    print(f'{sys.argv[0]} <datafile>\n')
+    return(0)
+
 if __name__ == '__main__':
+    usage()
     entries = []
     filename = sys.argv[1]
     f = open(filename, "r")
