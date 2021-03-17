@@ -5,6 +5,10 @@ import matplotlib.pyplot as plt
 import pylab as pl
 import math
 
+def usage():
+    print(f'Display scatter plot of a list of data in a file.')
+    print(f'{sys.argv[0]} <datafile>\n')
+    return(0)
 
 def main(filename):
     # output_file = ""
@@ -55,5 +59,6 @@ def main(filename):
 
 
 if __name__ == '__main__':
+    usage()
     main(sys.argv[1])
     

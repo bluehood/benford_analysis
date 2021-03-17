@@ -5,6 +5,10 @@ import scipy.stats as stats
 import pylab as pl
 import matplotlib.patches as mpatches
 
+def usage():
+    print(f'Plot histogram of a list of data provided in a local file. This program is designed specifically for price paid data.')
+    print(f"Usage: {sys.argv[0]} <datafile> <plot_savefile>")
+    return(0)
 
 def main(open_file, save_file):
     # import data

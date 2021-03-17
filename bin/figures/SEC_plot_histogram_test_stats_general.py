@@ -6,6 +6,10 @@ import scipy.stats as stats
 import pylab as pl
 import matplotlib.patches as mpatches
 
+def usage():
+    print(f'Plot histogram of a list of comma delimited test statisic value provided in a local file. The columns in the file must be formated as:\n <chi_squared>, <d*>, <A squared>.')
+    print(f"Usage: {sys.argv[0]} <datafile> <directory to save plot>\n")
+    return(0)
 
 def main(open_file, save_file):
 
@@ -165,4 +169,5 @@ def main(open_file, save_file):
 
 
 if __name__ == '__main__':
+    usage()
     main(sys.argv[1], sys.argv[2])

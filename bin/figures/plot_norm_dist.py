@@ -5,6 +5,10 @@ import matplotlib.pyplot as plt
 import pylab as pl
 import matplotlib.patches as mpatches
 
+def usage():
+    print(f'Plot histogram of a list of data provided in a local file.')
+    print(f"Usage: {sys.argv[0]} <datafile> <plot_savefile>")
+    return(0)
 
 def main(file_to_add, savelocation):
     # setup variables 
@@ -65,8 +69,8 @@ def main(file_to_add, savelocation):
     pl.savefig(f"{savelocation}", bbox_inches='tight' ) 
 
 if __name__ == '__main__':
-    # try:
-    main(sys.argv[1], sys.argv[2])
-    # except:
-    #     print(f"Usage: {sys.argv[0]} <datafile> <savefile>")
-    #     exit()
+    try:
+        main(sys.argv[1], sys.argv[2])
+    except:
+        usage()
+        exit()
