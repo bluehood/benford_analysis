@@ -1,6 +1,10 @@
 #!/usr/bin/python3
 import sys
 
+def usage():
+    print(f'Adjust for inflation in financial data. The rate of inflation will need to be specified as a parameter to the program.')
+    print(f'{sys.argv[0]} <datafile> <rate of inflation (percentage)> <savefile>')
+    return(0)
 
 def import_data(input_filename): 
     # Input data from argv[1] into input_data (newline delimited)
