@@ -6,6 +6,11 @@ import random
 import subprocess
 from subprocess import call
 
+def usage():
+    print(f'Wrapper to introduce deviations into an underlying Benford set.')
+    printf(f'Usage: {sys.argv[0]} <mode> <base set> <output file without extention> <lowerbound:upperbound> <other params>')
+    return(0)
+
 ### --------------------------------------- MAIN --------------------------------------------- ###
 
 def main(mode, base_set, dev_set, parameters):
@@ -71,4 +76,4 @@ if __name__ == '__main__':
 
 
 
-# <mode> <base set> <output file without extention> <lowerbound:upperbound> <other params> <>
+# <mode> <base set> <output file without extention> <lowerbound:upperbound> <other params> <> 
