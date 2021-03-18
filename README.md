@@ -26,7 +26,7 @@ This section describes the functions and purpose of tools within the different f
 * **digit_test**: perform Benford tests on a list of numerical data. The software sanitises the supplied data, applies Benford's law for a desired digit test, computes relevant test statistics assessing conformity and produces a plot of the results (histogram or discrete heatmap). 
 
 The avaliable digit tests are:
-  * 1    First Digit
+    * 1    First Digit
   * f1   First Digit Finite Range
   * 2    Second Digit
   * f2   Second Digit Finite Range
