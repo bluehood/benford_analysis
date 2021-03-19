@@ -754,9 +754,9 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
     # Format axis labels
     plt.xlabel("Digit Value")
     if report_mag_diff != "":
-        plt.ylabel(r"Observed Occurrence (${}$)".format(report_mag_diff))
+        plt.ylabel(r"Digit Occurrence (${}$)".format(report_mag_diff), fontsize=16)
     else:
-        plt.ylabel(r"Observed Occurrence")
+        plt.ylabel(r"Digit Occurrence", fontsize=16)
     plt.xticks(bins, "")
 
     if mode == '12':
@@ -827,20 +827,20 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
     ax1.set_ylim([-y_range,y_range])
 
     if mode in ['1', 'f1']:
-        plt.xlabel("First Digit Value")
-        plt.ylabel("Normalised Residual")
+        plt.xlabel("First Digit Value", fontsize=16)
+        plt.ylabel("Normalised Residual", fontsize=16)
         plt.ylim(-y_range - 0.75, y_range + 0.75) 
 
     elif mode == '12':
-        plt.xlabel("First Two Digit Values")
-        plt.ylabel("Normalised Residual")
+        plt.xlabel("First Two Digit Values", fontsize=16)
+        plt.ylabel("Normalised Residual", fontsize=16)
         plt.ylim(-y_range - 0.75, y_range + 0.75) 
         plt.xticks(np.arange(10, 100, 5))
         plt.xlim(9,100)
 
     elif mode in ['2','f2']:
-        plt.xlabel("Second Digit Value")
-        plt.ylabel("Normalised Residual")
+        plt.xlabel("Second Digit Value", fontsize=16)
+        plt.ylabel("Normalised Residual", fontsize=16)
         plt.ylim(-y_range - 0.75, y_range + 0.75) 
 
 
