@@ -7,7 +7,7 @@ def main(savefile, size, lowerbound, upperbound):
     size = size - 1
     # Check that the difference is an integer value
     if np.log10(upperbound / lowerbound) % 1 != 0.0:
-        print(f'[Fatal] log10({upperbound} / {lowerbound}) is not an integer. Exiting.')
+        print(f'[Info] log10({upperbound} / {lowerbound}) is not an integer.')
 
     # Calculate the difference
     print(f'[Debug] Creating a Benford set of size {size} in the range [{lowerbound}, {upperbound}) and saving to {savefile}')

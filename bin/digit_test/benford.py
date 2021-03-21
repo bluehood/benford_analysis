@@ -626,10 +626,19 @@ def compute_von_mises(expected_list, observed_list, benford_probability, size):
     else:
         U_squared = str('{:.3f}'.format(U_squared))
 
-    #A^2
-    if A_squared >= 2.492 and A_squared < 3.88:
+    #A^2 - define p_values from https://www.jstor.org/stable/pdf/3315828.pdf?refreqid=excelsior%3A5c388242fbac9f8040c6fae714dc9e86
+    if len(benford_probability) == 9:
+        p_values = [(2.392 + 2.367)/2, (3.78 + 3.72)/2]
+    elif len(benford_probability) == 10:
+        p_values = [2.392, 3.78]
+    else:
+        p_values = [2.492, 3.88]
+
+    print(f'HERE: {p_values}')
+
+    if A_squared >= p_values[0] and A_squared < p_values[1]:
         A_squared = str('{:.3f}'.format(A_squared)) + "\enspace(*)"
-    elif A_squared >= 3.88:
+    elif A_squared >= p_values[1]:
         A_squared = str('{:.3f}'.format(A_squared)) + "\enspace(**)"
     else:
         A_squared = str('{:.3f}'.format(A_squared))
