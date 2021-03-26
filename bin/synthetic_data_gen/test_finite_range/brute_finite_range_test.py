@@ -374,7 +374,7 @@ def plot_result_second(x_axis, y_axis1, y_axis2, mode, test):
     test_statistic_format = f'${str(X2_leading_digits)} \\times 10^' + '{' +  f'{test_statistic_magnitude}' + '}$'
 
     # Font size
-    plt.rcParams.update({'font.size': 13})
+    plt.rcParams.update({'font.size': 16})
 
     # Define figure
     fig = plt.figure(figsize=(8, 6))
@@ -562,8 +562,10 @@ def plot_result_second(x_axis, y_axis1, y_axis2, mode, test):
         for value in range(4, 7):
             sub_axes.axvline(x=value, linewidth=0.75, color='grey', linestyle='--')
 
-    plt.savefig('{}'.format(sys.argv[3]), bbox_inches='tight')
     plt.show()
+    exit()
+    plt.savefig('{}'.format(sys.argv[3]), bbox_inches='tight')
+    
     
     return(0)
 
@@ -589,7 +591,7 @@ def plot_result_first(x_axis, y_axis1, y_axis2, mode, test):
     test_statistic_format = f'${str(X2_leading_digits)} \\times 10^' + '{' +  f'{test_statistic_magnitude}' + '}$'
 
     # Font size
-    plt.rcParams.update({'font.size': 13})
+    plt.rcParams.update({'font.size': 15})
 
     # Define figure
     fig = plt.figure(figsize=(8, 6))
@@ -719,18 +721,18 @@ def plot_result_first(x_axis, y_axis1, y_axis2, mode, test):
 
     if mode == 'd':
         # label axis for d star
-        plt.xlabel("b coefficent")
-        plt.ylabel(r"$d^*$")
+        plt.xlabel("b coefficent", fontsize=16)
+        plt.ylabel(r"$d^*$", fontsize=16)
 
     elif mode == 'X_2':
         # label axis for chi squared
-        plt.xlabel("b coefficent")
-        plt.ylabel(r"$\chi^2$")
+        plt.xlabel("b coefficent", fontsize=16)
+        plt.ylabel(r"$\chi^2$", fontsize=16)
 
     elif mode == 'A':
         # label axis for A squared
-        plt.xlabel("b coefficent")
-        plt.ylabel(r"$A^2$")
+        plt.xlabel("b coefficent", fontsize=16)
+        plt.ylabel(r"$A^2$", fontsize=16)
     # Define Legend 
     patch = []
     # handles, labels = ax.get_legend_handles_labels()
@@ -800,11 +802,11 @@ if __name__ == '__main__':
         for entry in lines:
             
             X.append(float(entry.split(',')[0]))
-            Y1.append(float(entry.split(',')[3]))
-            Y2.append(float(entry.split(',')[6]))
+            Y1.append(float(entry.split(',')[2]))
+            Y2.append(float(entry.split(',')[5]))
 
 
-        plot_result_second(X, Y1, Y2, 'A', False)
+        plot_result_first(X, Y1, Y2, 'd', False)
     
     else:
         # Setup variables

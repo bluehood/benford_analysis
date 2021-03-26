@@ -82,7 +82,7 @@ def pronounce(set, params):
     if index <= 0:
         print(f'[Error] The index {index} is less than one! Must be one or greater.')
         exit()
-    elif rate < 0 or rate >= 100:
+    elif rate < 0 or rate >= 1:
         print(f'[Error] The rate {rate} must be a valid percentage and not zero or one hundred.')
         exit()
     elif int(digit) < 0 or int(digit) >= 10:
@@ -110,7 +110,7 @@ def rounding(set, params):
     if index <= 0:
         print(f'[Error] The index {index} is less than one! Must be one or greater.')
         exit()
-    elif rate < 0 or rate >= 100:
+    elif rate < 0 or rate >= 1:
         print(f'[Error] The rate {rate} must be a valid percentage and not zero or one hundred.')
         exit()
 

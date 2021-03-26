@@ -57,7 +57,8 @@ def main(base_set, normalise):
     data = input_numbers(base_set)
 
     # Define data
-    x_axis = [x[0] for x in data]
+    x_axis = [str(float(x[0]) / 100) for x in data]
+    print(x_axis)
     X_2 = [x[1] for x in data]
     A_2 = [x[2] for x in data]
     d_star = [x[3] for x in data]
@@ -65,40 +66,48 @@ def main(base_set, normalise):
     if normalise == 'true':
         for x in range(0, len(X_2)):
             X_2[x] = X_2[x] / 1.938
-            A_2[x] = A_2[x] / 2.492
+            A_2[x] = A_2[x] / 2.392
             d_star[x] = d_star[x] / 1.330
 
 
     # Define font size
-    plt.rcParams.update({'font.size': 12})
+    plt.rcParams.update({'font.size': 15})
 
     # Plot data
     plt.figure(figsize=(8,6))
-    plt.plot(x_axis, X_2, 'r', linewidth=1, label=r"$\chi_v^2$")
+    # plt.plot(x_axis, X_2, 'r', linewidth=1, label=r"$\chi_v^2$")
     plt.plot(x_axis, A_2, 'b', linewidth=1, label=r"$A^2$")
-    plt.plot(x_axis, d_star, 'g', linewidth=1, label=r"$d^*$")
+    plt.plot(x_axis, d_star, 'r', linewidth=1, label=r"$d^*$")
 
     # Plot significance values at .05 value
     #     if A_squared >= 2.492 and A_squared < 3.88:
 
     if normalise != 'true':
-        plt.axhline(y=1.938, linewidth=0.75, color='r', linestyle='--')
-        plt.axhline(y=1.330, linewidth=0.75, color='g', linestyle='--')
+        # plt.axhline(y=1.938, linewidth=0.75, color='r', linestyle='--')
+        plt.axhline(y=1.330, linewidth=0.75, color='r', linestyle='--')
         plt.axhline(y=2.492, linewidth=0.75, color='b', linestyle='--')
     elif normalise == 'true':
         plt.axhline(y=1, linewidth=0.75, color='black', linestyle='--')
-        plt.axhline(y=1.296, linewidth=0.75, color='r', linestyle='--')
-        plt.axhline(y=1.2, linewidth=0.75, color='g', linestyle='--')
+        # plt.axhline(y=1.296, linewidth=0.75, color='r', linestyle='--')
+        plt.axhline(y=1.2, linewidth=0.75, color='r', linestyle='--')
         plt.axhline(y=1.557, linewidth=0.75, color='b', linestyle='--')
 
     plt.legend(loc='best')
 
     # Formatting of graph
-    plt.xlim(0, 2.5)
+    plt.xlim(0, 50)
     plt.ylim(0, 8)
-    plt.xlabel(r"$\sigma$")
-    plt.ylabel("Normalised Test Statistics")
+
+
+    # set xticks
+    # locs, labels = plt.xticks()
+    # print(locs)
+    plt.xticks(np.arange(0,55,10))
+
+    plt.xlabel(r"$\sigma$", fontsize=16)
+    plt.ylabel("Normalised Test Statistics", fontsize=16)
     plt.savefig('{}'.format(sys.argv[3]), bbox_inches='tight')
+    plt.show()
 
 
 if __name__ == '__main__':

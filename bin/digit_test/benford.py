@@ -760,12 +760,24 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
     else: 
         report_mag_diff = ""
 
+    # Format N in scientific notation of N>10000
+    if dataset_size >= 10000:
+        N_mag = math.floor(np.log10(dataset_size))
+        
+        # Compute magnitude to report on ylabel
+        # N_mean_mag_diff = math.floor(np.log10(yticks[lower_index])) + N_mag_diff
+        # print(f'{round(dataset_size / 10**N_mag, 1) } * 10** {N_mag}')
+        dataset_size_report = r'{} \times 10^{}'.format(round(dataset_size / 10**N_mag, 1),N_mag)
+
+    else:
+        dataset_size_report = str(dataset_size)
+
     # Format axis labels
     plt.xlabel("Digit Value")
     if report_mag_diff != "":
-        plt.ylabel(r"Digit Occurrence (${}$)".format(report_mag_diff), fontsize=16)
+        plt.ylabel(r"Digit Occurrence (${}$)".format(report_mag_diff), fontsize=15)
     else:
-        plt.ylabel(r"Digit Occurrence", fontsize=16)
+        plt.ylabel(r"Digit Occurrence", fontsize=15, verticalalignment='top')
     plt.xticks(bins, "")
 
     if mode == '12':
@@ -779,13 +791,13 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
         patch.append(mpatches.Patch(color='firebrick', label=r'$|\sigma|$ > 1'))
         patch.append(mpatches.Patch(color='none', label=r'${}$'.format(von_mises)))
         patch.append(mpatches.Patch(color='none', label=r'${}$'.format(dstar)))
-        patch.append(mpatches.Patch(color='none', label=r'$N = {}$'.format(str(dataset_size))))
+        patch.append(mpatches.Patch(color='none', label=r'$N = {}$'.format(dataset_size_report)))
     
     else:
         patch = []
         handles, labels = ax0.get_legend_handles_labels()
         patch.append(mpatches.Patch(color='green', label=r'$|\sigma|$ < 1,    ${}$'.format(dstar)))
-        patch.append(mpatches.Patch(color='firebrick', label=r'$|\sigma|$ > 1,    $N={}$'.format(str(dataset_size))))
+        patch.append(mpatches.Patch(color='firebrick', label=r'$|\sigma|$ > 1,    $N={}$'.format(dataset_size_report)))
         #patch.append(mpatches.Patch(color='white', label=r'${}$'.format(von_mises)))
         # patch.append(mpatches.Patch(color='none', label=r'${}$, $N={}$'.format(dstar, str(dataset_size))))
         #patch.append(mpatches.Patch(color='white', label=r'$N = {}$'.format(str(dataset_size))))
@@ -836,20 +848,20 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
     ax1.set_ylim([-y_range,y_range])
 
     if mode in ['1', 'f1']:
-        plt.xlabel("First Digit Value", fontsize=16)
-        plt.ylabel("Normalised Residual", fontsize=16)
+        plt.xlabel("First Digit Value", fontsize=15)
+        plt.ylabel("Normalised Residual", fontsize=15)
         plt.ylim(-y_range - 0.75, y_range + 0.75) 
 
     elif mode == '12':
-        plt.xlabel("First Two Digit Values", fontsize=16)
-        plt.ylabel("Normalised Residual", fontsize=16)
+        plt.xlabel("First Two Digit Values", fontsize=15)
+        plt.ylabel("Normalised Residual", fontsize=15)
         plt.ylim(-y_range - 0.75, y_range + 0.75) 
         plt.xticks(np.arange(10, 100, 5))
         plt.xlim(9,100)
 
     elif mode in ['2','f2']:
-        plt.xlabel("Second Digit Value", fontsize=16)
-        plt.ylabel("Normalised Residual", fontsize=16)
+        plt.xlabel("Second Digit Value", fontsize=15)
+        plt.ylabel("Normalised Residual", fontsize=15)
         plt.ylim(-y_range - 0.75, y_range + 0.75) 
 
 
