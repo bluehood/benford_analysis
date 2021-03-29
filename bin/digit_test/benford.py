@@ -777,7 +777,7 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
     if report_mag_diff != "":
         plt.ylabel(r"Digit Occurrence (${}$)".format(report_mag_diff), fontsize=15)
     else:
-        plt.ylabel(r"Digit Occurrence", fontsize=15, verticalalignment='top')
+        plt.ylabel(r"Digit Occurrence", fontsize=15)
     plt.xticks(bins, "")
 
     if mode == '12':
