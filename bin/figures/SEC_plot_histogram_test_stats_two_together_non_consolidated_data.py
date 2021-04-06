@@ -30,8 +30,24 @@ def import_test_stats(filename):
             d_star_local.append(float(x.split(',')[2]))
             a_squared_local.append(float(x.split(',')[1]))
         except:
-            print(x)
+            
+            continue
+    
+    # print number of points less than 0.01 significance level
+    d_star_sig_level = 0
+    A_squared_sig_level = 0
 
+    for x in d_star_local:
+        if float(x) < 1.596:
+            d_star_sig_level += 1
+    
+    for x in a_squared_local:
+        if float(x) < 3.750:
+            A_squared_sig_level += 1
+
+    print(filename.split('/')[-1])
+    print(f'd_star: {d_star_sig_level}')
+    print(f'A_squared: {A_squared_sig_level}')
     return(chi_squared_local, d_star_local, a_squared_local)
 
 
@@ -113,7 +129,7 @@ def main(original_data_file, modified_data_file, save_file):
     
     
     # Plot on two datasets in a histogram on top of one another
-    plt.rcParams.update({'font.size': 12.5})
+    plt.rcParams.update({'font.size': 14})
     fig = plt.figure()
     ax = plt.subplot(111)
     # pl.plot(data_to_plot, fit,'--', linewidth=1.5, markersize=0.1, label="Normal Distribution")
@@ -121,12 +137,38 @@ def main(original_data_file, modified_data_file, save_file):
     pl.ylabel("Normalised Occurence", size=15)
     pl.xlim(np.floor(min(data_to_plot_original[0], data_to_plot_modified[0])), np.ceil(max(data_to_plot_original[-1], data_to_plot_modified[-1])))
 
+
+    # Calculate Bins we define the binwidth. Define colour of the bins
+    # binwidth = 10000
+    # bins_one = np.arange(0, 120000 + binwidth, binwidth)
+    # threshold_one = np.array([125000, 130000])
+    # total = np.concatenate((bins_one, threshold_one), axis=None)
+    # bins_two = np.arange(140000, 240000 + binwidth, binwidth)
+    # threshold_two = np.array([245000, 250000, 255000])
+    # total = np.concatenate((total, bins_two, threshold_two), axis=None)
+    # bins_three = np.arange(260000, max(data_to_plot) + binwidth, binwidth)
+    # total = np.concatenate((total, bins_three), axis=None)
+    # define_bins = total
+
+    # bins_one = np.arange(1, 120001 + binwidth, binwidth)
+    # threshold_one = np.array([125001, 130001])
+    # total = np.concatenate((bins_one, threshold_one), axis=None)
+    # bins_two = np.arange(140001, 240001 + binwidth, binwidth)
+    # threshold_two = np.array([245001, 250001, 255001])
+    # total = np.concatenate((total, bins_two, threshold_two), axis=None)
+    # bins_three = np.arange(260001, max(data_to_plot) + binwidth + 1, binwidth)
+    # total = np.concatenate((total, bins_three), axis=None)
+    # define_bins = total
+
+    
+    
+
     # Plot Histogram
     # N, bins, patches = ax.hist(data_to_plot, bins = define_bins, density=True, color = "skyblue", ec="black", lw=1, label='PPD', alpha=0.7)
-    N, bins, patches = ax.hist(data_to_plot_original, bins = bin_width, density=True, color = "skyblue", ec="black", lw=1, label=f'Total Dataset', alpha=0.5)
+    N, bins, patches = ax.hist(data_to_plot_original, bins = bin_width, density=True, color = "skyblue", ec="black", lw=1, label=f'First Digit', alpha=0.5)
     # N, bins, patches = ax.hist(data_to_plot, density=True, color = "skyblue", ec="black", lw=1, label=x_label, alpha=0.7)
 
-    N_2, bins_2, patches_2 = ax.hist(data_to_plot_modified, bins = bin_width, density=True, color = "indianred", ec="black", lw=1, label=f'Consolidated Financial Data', alpha=0.4)
+    N_2, bins_2, patches_2 = ax.hist(data_to_plot_modified, bins = bin_width, density=True, color = "indianred", ec="black", lw=1, label=f'Second Digit', alpha=0.4)
 
 
     
@@ -137,11 +179,11 @@ def main(original_data_file, modified_data_file, save_file):
     handles, labels = ax.get_legend_handles_labels()
 
     if j == 0:
-        patch.append(mpatches.Patch(color='none', label=r"$\bar{\chi}^2_{\nu, T}$" + " = {:.1f}, $\sigma_T$ = {:.1f}, $N_T$ = {}".format(np.mean(data_to_plot_original), np.std(data_to_plot_original), len(data_to_plot_original))))
+        patch.append(mpatches.Patch(color='none', label=r"$\bar{\chi}^2_{\nu, 1}$" + " = {:.1f}, $\sigma_1$ = {:.1f}, $N_1$ = {}".format(np.mean(data_to_plot_original), np.std(data_to_plot_original), len(data_to_plot_original))))
     elif j == 1:
-        patch.append(mpatches.Patch(color='none', label=r"$\bar{d}^{*}_{T}$" + " = {:.1f}, $\sigma_T$ = {:.1f}, $N_T$ = {}".format(np.mean(data_to_plot_original), np.std(data_to_plot_original), len(data_to_plot_original))))
+        patch.append(mpatches.Patch(color='none', label=r"$\bar{d}^{*}_{1}$" + " = {:.1f}, $\sigma_1$ = {:.1f}, $N_1$ = {}".format(np.mean(data_to_plot_original), np.std(data_to_plot_original), len(data_to_plot_original))))
     elif j == 2:
-        patch.append(mpatches.Patch(color='none', label=r"$\bar{A}^{2}_T$" + " = {:.1f}, $\sigma_T$ = {:.1f}, $N_T$ = {}".format(np.mean(data_to_plot_original), np.std(data_to_plot_original), len(data_to_plot_original))))
+        patch.append(mpatches.Patch(color='none', label=r"$\bar{A}^{2}_1$" + " = {:.1f}, $\sigma_1$ = {:.1f}, $N_1$ = {}".format(np.mean(data_to_plot_original), np.std(data_to_plot_original), len(data_to_plot_original))))
     
     # patch.append(mpatches.Patch(color='none', label=r"N = {}".format(len(data_to_plot_original))))
 
@@ -151,11 +193,11 @@ def main(original_data_file, modified_data_file, save_file):
 
     patch = []
     if j == 0:
-        patch.append(mpatches.Patch(color='none', label=r"$\bar{\chi}^2_{\nu, C}$" + " = {:.1f}, $\sigma_C$ = {:.1f}, $N_C$ = {}".format(np.mean(data_to_plot_modified), np.std(data_to_plot_modified), len(data_to_plot_modified))))
+        patch.append(mpatches.Patch(color='none', label=r"$\bar{\chi}^2_{\nu, 2}$" + " = {:.1f}, $\sigma_2$ = {:.1f}, $N_2$ = {}".format(np.mean(data_to_plot_modified), np.std(data_to_plot_modified), len(data_to_plot_modified))))
     elif j == 1:
-        patch.append(mpatches.Patch(color='none', label=r"$\bar{d}^{*}_C$" + " = {:.1f}, $\sigma_C$ = {:.1f}, $N_C$ = {}".format(np.mean(data_to_plot_modified), np.std(data_to_plot_modified), len(data_to_plot_modified) - 1)))
+        patch.append(mpatches.Patch(color='none', label=r"$\bar{d}^{*}_2$" + " = {:.1f}, $\sigma_2$ = {:.1f}, $N_2$ = {}".format(np.mean(data_to_plot_modified), np.std(data_to_plot_modified), len(data_to_plot_modified))))
     elif j == 2:
-        patch.append(mpatches.Patch(color='none', label=r"$\bar{A}^{2}_C$" + " = {:.1f}, $\sigma_C$ = {:.1f}, $N_C$ = {}".format(np.mean(data_to_plot_modified), np.std(data_to_plot_modified), len(data_to_plot_modified))))
+        patch.append(mpatches.Patch(color='none', label=r"$\bar{A}^{2}_2$" + " = {:.1f}, $\sigma_2$ = {:.1f}, $N_2$ = {}".format(np.mean(data_to_plot_modified), np.std(data_to_plot_modified), len(data_to_plot_modified))))
     
     #  patch.append(mpatches.Patch(color='none', label=r"N = {}".format(len(data_to_plot_modified))))
     
@@ -168,7 +210,7 @@ def main(original_data_file, modified_data_file, save_file):
 
      # Set y_ticks
     locs, labels = plt.yticks()
-    y_interval = (max(locs) - min(locs)) / 5
+    y_interval = (max(locs) - min(locs)) / 7
     pl.yticks(np.arange(min(locs), max(locs) + y_interval, y_interval).round(2))
     pl.ylim(min(locs), max(locs))
     
@@ -176,7 +218,7 @@ def main(original_data_file, modified_data_file, save_file):
     # Inset if applicable
     if sys.argv[6] == 'true':
         # Define inset data
-        maximum = max(data_to_plot_original[-1], data_to_plot_modified[-1]) / 3
+        maximum = max(data_to_plot_original[-1], data_to_plot_modified[-1]) / 10
         data_to_plot_original_inset = []
         data_to_plot_modified_inset = []
 
@@ -201,8 +243,8 @@ def main(original_data_file, modified_data_file, save_file):
         # Set position and size of inset 
         ax2 = plt.axes([0,0,1,1])
         # d*
-        # ip = InsetPosition(ax, [0.55,0.17,0.43,0.43])
-        ip = InsetPosition(ax, [0.55,0.17,0.43,0.43])
+        # ip = InsetPosition(ax, [0.52,0.17,0.43,0.43])
+        ip = InsetPosition(ax, [0.48,0.1,0.5,0.45])
         ax2.set_axes_locator(ip)
         
 
@@ -211,17 +253,17 @@ def main(original_data_file, modified_data_file, save_file):
         # mark_inset(ax, ax2, loc1=2, loc2=4, fc="none", ec='0.5')
 
         # Calculate bin width.. Take the minimum of original and moodified data 
-        number_of_bins = 40
+        number_of_bins = 30
         individual_bin_width = min((np.ceil(max(data_to_plot_original_inset)) - np.floor(min(data_to_plot_original_inset))) / number_of_bins,  np.ceil(max(data_to_plot_modified_inset)) - np.floor(min(data_to_plot_modified_inset)) / number_of_bins)
         bin_width = np.arange( min(np.floor(min(data_to_plot_original)), np.floor(min(data_to_plot_modified))), max(np.ceil(max(data_to_plot_original)), np.ceil(max(data_to_plot_modified))) + individual_bin_width, individual_bin_width)
         # print(bin_width)
 
         #Plot data below a maximum
         
-        ax2.hist(data_to_plot_original, bins = bin_width, density=True, color = "skyblue", ec="black", lw=1, label=f'Total Dataset', alpha=0.5)
-        ax2.hist(data_to_plot_modified, bins = bin_width, density=True, color = "indianred", ec="black", lw=1, label=f'Modified Dataset', alpha=0.4)
+        ax2.hist(data_to_plot_original, bins = bin_width, density=True, color = "skyblue", ec="black", lw=1, label=f'First Digit', alpha=0.5)
+        ax2.hist(data_to_plot_modified, bins = bin_width, density=True, color = "indianred", ec="black", lw=1, label=f'Second Digit', alpha=0.4)
         
-        plt.xlim(0.4, maximum)
+        plt.xlim(0, maximum)
     # N, bins, patches = ax.hist(data_to_plot, density=True, color = "skyblue", ec="black", lw=1, label=x_label, alpha=0.7)
 
     #  ax.hist(data_to_plot_modified, bins = bin_width, density=True, color = "indianred", ec="black", lw=1, label=f'Consolidated Financial Data', alpha=0.4)
@@ -230,8 +272,8 @@ def main(original_data_file, modified_data_file, save_file):
 
 
 
-    # plt.show()
-    # exit()
+    plt.show()
+    exit()
     pl.savefig(f"{save_file}", bbox_inches='tight' )
     # pl.savefig(f'{save_file}')
 

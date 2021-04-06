@@ -321,15 +321,16 @@ if __name__ == '__main__':
     # sec_report_2004_sections = [['columns', 933, 1877], ['columns', 2526, 3358], ['columns', 3358, 4299], ['columns', 4299, 4698], ['columns', 4815, 5647], ['columns', 5647, 6523], ['columns', 6588, 6987], ['columns', 7048, 7319], ['rows', 7698, 8138], ['columns', 10127, 11166]]
 
     # Selected identical data portions
-    sec_report_2003_sections = [['columns', 526, 1425], ['columns', 3125, 4585], ['columns', 4706, 6171], ['columns', 6234, 6492], ['rows', 8454, 9007], ['columns', 10905, 11971]]
-    sec_report_2004_sections = [['columns', 933, 1877], ['columns', 2526, 3358], ['columns', 3358, 4299], ['columns', 4815, 5647], ['columns', 5647, 6523], ['columns', 7048, 7319], ['rows', 7698, 8138], ['columns', 10127, 11166]]
+    # sec_report_2003_sections = [['columns', 526, 1425], ['columns', 3125, 4585], ['columns', 4706, 6171], ['columns', 6234, 6492], ['rows', 8454, 9007], ['columns', 10905, 11971]]
+    # sec_report_2004_sections = [['columns', 933, 1877], ['columns', 2526, 3358], ['columns', 3358, 4299], ['columns', 4815, 5647], ['columns', 5647, 6523], ['columns', 7048, 7319], ['rows', 7698, 8138], ['columns', 10127, 11166]]
 
     # Loss reserve extraction
-    sec_report_2003_sections = [['columns', 3125, 4585], ['columns', 4706, 6171]]
-    sec_report_2004_sections = [['columns', 2526, 3358], ['columns', 3358, 4299], ['columns', 4815, 5647], ['columns', 5647, 6523]]
+    sec_report_2003_sections = [['columns', 3125, 4585]]
+    sec_report_2004_sections = [['columns', 4815, 5647], ['columns', 5647, 6523], ['columns', 6588, 6987]]
 
 
-    for section in sec_report_2004_sections:
+
+    for section in sec_report_2003_sections:
         if section[0] == 'columns':
             local_data_extracted, local_years = extract_columns_contain_years(sec_report_raw[section[1]:section[2]])
             extracted_data_arranged_year = add_to_global_dataset(extracted_data_arranged_year, local_data_extracted, local_years)

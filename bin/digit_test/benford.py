@@ -171,7 +171,9 @@ def digit_test(input_data, mode):
             digits = int(x[int(mode[0]) - 1:int(mode[1 % len(mode)])])
             digit_frequency[digits - offset] += 1
         except:
+            print(f'[Debug] Ignoring {x}')
             pass
+
 
     #Convert frequncies to percentage expressed as a decimal. 
     print("[Debug] Converting to percentages")
@@ -634,7 +636,7 @@ def compute_von_mises(expected_list, observed_list, benford_probability, size):
     else:
         p_values = [2.492, 3.88]
 
-    print(f'HERE: {p_values}')
+    # print(f'HERE: {p_values}')
 
     if A_squared >= p_values[0] and A_squared < p_values[1]:
         A_squared = str('{:.3f}'.format(A_squared)) + "\enspace(*)"
@@ -1183,16 +1185,17 @@ def main(mode):
     elif mode == 'f1':
         data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic, data_size = benford_finite_range(data, mode)
         bins_to_plot = np.arange(9)
-        # Compute datasize for finite range case
-        data_size = len(data)
     
     elif mode == 'f2':
         data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic, data_size = benford_finite_range(data, mode)
         bins_to_plot = np.arange(10)
-        data_size = len(data)
+
     
-    data_size = len(data)
-    
+    # print(data_raw)
+    data_size = 0
+    for x in data_raw:
+        data_size += x
+
     #Output results
     print("[Debug] Analysis complete. Outputing results.")
     print("\n\n###--- Analysis for", filename, "---###\n")
