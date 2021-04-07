@@ -64,6 +64,11 @@ def input_numbers(input_filename):
     #Remove all null values and leading zeros. Add trailing zero to any entry of length 1. Save this result in input_data_sanitised
     print("[Debug] Sanitising Input Data")
 
+    input_data_floats = [float(x) for x in input_data]
+    lowerbound = min(input_data_floats)
+    upperbound = max(input_data_floats)
+    print(f'{lowerbound} {upperbound}')
+
     try:
         input_data.remove('0')
         input_data.remove('0.')
@@ -84,7 +89,7 @@ def input_numbers(input_filename):
     # Remove all null entries from input_data_sanitised
     input_data_sanitised = ' '.join(input_data_sanitised).split()
     print("[Debug] Input Data Sanitised Successfully")  
-    return(input_data_sanitised) 
+    return(input_data_sanitised, lowerbound, upperbound) 
 
 
 
@@ -263,13 +268,13 @@ def benford_distribution(mode, size):
 
 
 #Calculate finite range Benford distributions
-def finite_range_benford_distribution(data, mode):
+def finite_range_benford_distribution(data, mode, lb, ub):
     #Finite range calculation
     P = []
     # Calculate upperlimit
     data_float = [ float(x) for x in data ]
-    lowerlimit = min(data_float)
-    upperlimit = max(data_float)
+    lowerlimit = lb
+    upperlimit = ub
     print(lowerlimit, upperlimit)
 
     # refine range 
@@ -390,12 +395,12 @@ def finite_range_benford_distribution(data, mode):
 
 
 #First Digit Finite range Benford's law
-def benford_finite_range(input_data, mode):
+def benford_finite_range(input_data, mode, lb, ub):
     print("[Debug] Calculating first digit frequency")
     #Calcuate perfect Benford distribution.
     print("[Debug] Computing ideal Benford frequency")
     
-    benford_frequency, digit_frequency, dataset_size = finite_range_benford_distribution(input_data, mode)
+    benford_frequency, digit_frequency, dataset_size = finite_range_benford_distribution(input_data, mode, lb, ub)
 
     #Compute Benford distribution for data of length equal to dataset
     benford_frequency_percent = []
@@ -449,8 +454,10 @@ def refine_finite_range(lowerbound, upperbound, dataset, mode):
         digit_frequency_observed = [0] * 10
 
         for x in dataset_refined:
-            digit_frequency_observed[int(str(x)[1])] += 1
-
+            try:
+                digit_frequency_observed[int(str(x)[1])] += 1
+            except:
+                continue
     
     return(digit_frequency_observed, len(dataset_refined))
 
@@ -1164,7 +1171,7 @@ def main(mode):
 
     #Import data from argv[1]
     filename = sys.argv[1]
-    data = input_numbers(filename)
+    data, lowerbound, upperbound = input_numbers(filename)
     print("[Debug] Starting First Digit Analysis")
 
     if mode in ['1', '12', '12h', '12hn', '23', '23h', '23hn', '2']:
@@ -1183,11 +1190,11 @@ def main(mode):
                 bins_to_plot.append(x)
     
     elif mode == 'f1':
-        data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic, data_size = benford_finite_range(data, mode)
+        data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic, data_size = benford_finite_range(data, mode, lowerbound, upperbound)
         bins_to_plot = np.arange(9)
     
     elif mode == 'f2':
-        data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic, data_size = benford_finite_range(data, mode)
+        data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic, data_size = benford_finite_range(data, mode, lowerbound, upperbound)
         bins_to_plot = np.arange(10)
 
     
