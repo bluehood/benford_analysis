@@ -179,7 +179,6 @@ def digit_test(input_data, mode):
             print(f'[Debug] Ignoring {x}')
             pass
 
-
     #Convert frequncies to percentage expressed as a decimal. 
     print("[Debug] Converting to percentages")
 
@@ -196,17 +195,24 @@ def digit_test(input_data, mode):
     for x in benford_frequency_percent:
         benford_frequency.append(x * len(input_data))
 
+    # compute dataset size
+    data_size_local = 0
+    for x in digit_frequency:
+        data_size_local += x
+    
+    print(data_size_local)
+
     #Compute Z statistic for this data:
     print("[Debug] Computing Z statistic")
     z_stat = []
     for x in range(0, len(digit_frequency)):
-        z_stat.append(compute_z_statistic(digit_frequency_percent[x], benford_frequency_percent[x], len(input_data)))
+        z_stat.append(compute_z_statistic(digit_frequency_percent[x], benford_frequency_percent[x], data_size_local))
 
     #Compute von-mises statistics
-    von_mises_stat = compute_von_mises(benford_frequency, digit_frequency, benford_frequency_percent, len(input_data))
+    von_mises_stat = compute_von_mises(benford_frequency, digit_frequency, benford_frequency_percent, data_size_local)
 
     #Compute d* statistic
-    d_star_stat = compute_dstar(digit_frequency_percent, benford_frequency_percent, len(input_data))
+    d_star_stat = compute_dstar(digit_frequency_percent, benford_frequency_percent, data_size_local)
 
     return(digit_frequency, benford_frequency, digit_frequency_percent, benford_frequency_percent, z_stat, von_mises_stat, d_star_stat)
 
