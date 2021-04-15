@@ -209,10 +209,10 @@ def digit_test(input_data, mode):
         z_stat.append(compute_z_statistic(digit_frequency_percent[x], benford_frequency_percent[x], data_size_local))
 
     #Compute von-mises statistics
-    von_mises_stat = compute_von_mises(benford_frequency, digit_frequency, benford_frequency_percent, data_size_local)
+    von_mises_stat = compute_von_mises(benford_frequency, digit_frequency, benford_frequency_percent, data_size_local, mode)
 
     #Compute d* statistic
-    d_star_stat = compute_dstar(digit_frequency_percent, benford_frequency_percent, data_size_local)
+    d_star_stat = compute_dstar(digit_frequency_percent, benford_frequency_percent, data_size_local, mode)
 
     return(digit_frequency, benford_frequency, digit_frequency_percent, benford_frequency_percent, z_stat, von_mises_stat, d_star_stat)
 
@@ -430,10 +430,10 @@ def benford_finite_range(input_data, mode, lb, ub):
             z_stat.append(0)
 
     #Compute von-mises statistics
-    von_mises_stat = compute_von_mises(benford_frequency, digit_frequency, benford_frequency_percent, dataset_size)
+    von_mises_stat = compute_von_mises(benford_frequency, digit_frequency, benford_frequency_percent, dataset_size, mode)
 
     #Compute d* statistic
-    d_star_stat = compute_dstar(digit_frequency_percent, benford_frequency_percent, dataset_size)
+    d_star_stat = compute_dstar(digit_frequency_percent, benford_frequency_percent, dataset_size, mode)
 
     return(digit_frequency, benford_frequency, digit_frequency_percent, benford_frequency_percent, z_stat, von_mises_stat, d_star_stat, dataset_size)
 
@@ -568,7 +568,7 @@ def compute_ks_statistic(expected_list, actual_list, size):
     return(cdf_diff_abs[-1])
 
 #Calculate CM statistics
-def compute_von_mises(expected_list, observed_list, benford_probability, size):
+def compute_von_mises(expected_list, observed_list, benford_probability, size, mode):
     #Compute cdf for expected and observed outcomes NOT normalised
     observed_cdf = []
     for x in range(0, len(observed_list)):
@@ -641,13 +641,13 @@ def compute_von_mises(expected_list, observed_list, benford_probability, size):
     else:
         U_squared = str('{:.3f}'.format(U_squared))
 
-    #A^2 - define p_values from https://www.jstor.org/stable/pdf/3315828.pdf?refreqid=excelsior%3A5c388242fbac9f8040c6fae714dc9e86
-    if len(benford_probability) == 9:
-        p_values = [(2.392 + 2.367)/2, (3.78 + 3.72)/2]
-    elif len(benford_probability) == 10:
-        p_values = [2.392, 3.78]
+    #A^2
+    if mode == '1':
+        p_values = [2.84, 4.56]
+    elif mode == '2':      
+        p_values = [2.61, 3.97]
     else:
-        p_values = [2.492, 3.88]
+        p_values = [2.61, 3.97]
 
     # print(f'HERE: {p_values}')
 
@@ -666,7 +666,7 @@ def compute_von_mises(expected_list, observed_list, benford_probability, size):
     return(return_value)
     
 #compute d* statistic 
-def compute_dstar(p, b, size):
+def compute_dstar(p, b, size, mode):
     #compute maximum value of d
     d_max = 0
     for x in range(0, len(b)):
@@ -682,6 +682,8 @@ def compute_dstar(p, b, size):
     for x in range(0, len(b)):
         d_star += (p[x] - b[x]) ** 2
 
+    
+
     d_star_morrow = d_star
     d_star = math.sqrt(d_star)
     d_star_norm = d_star / d_max
@@ -690,10 +692,17 @@ def compute_dstar(p, b, size):
     d_star_morrow = size * d_star_morrow
     d_star_morrow = math.sqrt(d_star_morrow)
 
+    if mode == '1':
+        p_values = [1.35, 1.66]
+    elif mode == '2':       
+        p_values = [1.32, 1.49]
+    else:
+        p_values = [1.32, 1.49]
+
     #Compute confidence levels for Morrow's d* test
-    if d_star_morrow >= 1.330 and d_star_morrow < 1.596:
+    if d_star_morrow >= p_values[0] and d_star_morrow < p_values[1]:
         d_star_morrow = str(format('{:.3f}'.format(d_star_morrow))) + "\enspace(*)"
-    elif d_star_morrow >= 1.596:
+    elif d_star_morrow >= p_values[1]:
         d_star_morrow = str(format('{:.3f}'.format(d_star_morrow))) + "\enspace(**)"
     else:
         d_star_morrow = str(format('{:.3f}'.format(d_star_morrow)))
@@ -1180,6 +1189,7 @@ def main(mode):
     data, lowerbound, upperbound = input_numbers(filename)
     print("[Debug] Starting First Digit Analysis")
 
+    # Process the mode of analysis e.g. first digit analysis = 1
     if mode in ['1', '12', '12h', '12hn', '23', '23h', '23hn', '2']:
         data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic = digit_test(data, mode)
         
@@ -1203,8 +1213,7 @@ def main(mode):
         data_raw, benford_raw, data_percent, benford_percent, z_statistic, von_mises_statistic, d_star_statistic, data_size = benford_finite_range(data, mode, lowerbound, upperbound)
         bins_to_plot = np.arange(10)
 
-    
-    # print(data_raw)
+    # Compute sanitised dataset size
     data_size = 0
     for x in data_raw:
         data_size += x
@@ -1212,8 +1221,6 @@ def main(mode):
     #Output results
     print("[Debug] Analysis complete. Outputing results.")
     print("\n\n###--- Analysis for", filename, "---###\n")
-
-    # Process the mode of analysis e.g. first digit analysis = 1
     output_digit_test(data_raw, benford_raw, z_statistic, mode)
     
     # Test statistic Output

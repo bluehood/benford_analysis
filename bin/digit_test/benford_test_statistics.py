@@ -140,10 +140,10 @@ def digit_test(input_data, mode):
 
     
     #Compute von-mises statistics
-    von_mises_stat = compute_von_mises(benford_frequency, digit_frequency, benford_frequency_percent, len(input_data))
+    von_mises_stat = compute_von_mises(benford_frequency, digit_frequency, benford_frequency_percent, len(input_data), mode)
 
     #Compute d* statistic
-    d_star_stat = compute_dstar(digit_frequency_percent, benford_frequency_percent, len(input_data))
+    d_star_stat = compute_dstar(digit_frequency_percent, benford_frequency_percent, len(input_data), mode)
 
     # Compute X_2 statistic 
     x_squared = compute_chi_squared_statistic(benford_frequency, digit_frequency, len(digit_frequency) - 1)
@@ -290,7 +290,7 @@ def finite_range_benford_distribution(mode, data):
 
 
 #First Digit Finite range Benford's law
-def first_digit_benford_finite_range(input_data):
+def first_digit_benford_finite_range(input_data, mode):
     # print("[Debug] Calculating first digit frequency")
     #Calcuate perfect Benford distribution.
     # print("[Debug] Computing ideal Benford frequency")
@@ -319,10 +319,10 @@ def first_digit_benford_finite_range(input_data):
             z_stat.append(0)
 
     #Compute von-mises statistics
-    von_mises_stat = compute_von_mises(benford_frequency, digit_frequency, benford_frequency_percent, dataset_size)
+    von_mises_stat = compute_von_mises(benford_frequency, digit_frequency, benford_frequency_percent, dataset_size, mode)
 
     #Compute d* statistic
-    d_star_stat = compute_dstar(digit_frequency_percent, benford_frequency_percent, dataset_size)
+    d_star_stat = compute_dstar(digit_frequency_percent, benford_frequency_percent, dataset_size, mode)
 
     return(digit_frequency, benford_frequency, digit_frequency_percent, benford_frequency_percent, z_stat, von_mises_stat, d_star_stat, dataset_size)
 
@@ -437,7 +437,7 @@ def compute_ks_statistic(expected_list, actual_list, size):
     return(cdf_diff_abs[-1])
 
 #Calculate CM statistics
-def compute_von_mises(expected_list, observed_list, benford_probability, size):
+def compute_von_mises(expected_list, observed_list, benford_probability, size, mode):
     #Compute cdf for expected and observed outcomes NOT normalised
     observed_cdf = []
     for x in range(0, len(observed_list)):
@@ -496,37 +496,46 @@ def compute_von_mises(expected_list, observed_list, benford_probability, size):
     #Catogrise signifcance levels
     #W^2
     if W_squared >= 0.461 and W_squared < 0.743:
-        W_squared = str('{:.3f}'.format(W_squared))
+        W_squared = str('{:.3f}'.format(W_squared)) + " *"
     elif W_squared >= 0.743:
-        W_squared = str('{:.3f}'.format(W_squared))
+        W_squared = str('{:.3f}'.format(W_squared)) + " **"
     else:
         W_squared = str('{:.3f}'.format(W_squared))
 
     #U^2
     if U_squared >= 0.187 and U_squared < 0.268:
-        U_squared = str('{:.3f}'.format(U_squared))
+        U_squared = str('{:.3f}'.format(U_squared)) + " *"
     elif U_squared >= 0.268:
-        U_squared = str('{:.3f}'.format(U_squared))
+        U_squared = str('{:.3f}'.format(U_squared)) + " **"
     else:
         U_squared = str('{:.3f}'.format(U_squared))
 
     #A^2
-    if A_squared >= 2.492 and A_squared < 3.88:
-        A_squared = str('{:.3f}'.format(A_squared)) 
-    elif A_squared >= 3.88:
-        A_squared = str('{:.3f}'.format(A_squared))
+    if mode == '1':
+        p_values = [2.84, 4.56]
+    elif mode == '2':       
+        p_values = [2.61, 3.97]
+    else:
+        p_values = [2.61, 3.97]
+
+    # print(f'HERE: {p_values}')
+
+    if A_squared >= p_values[0] and A_squared < p_values[1]:
+        A_squared = str('{:.3f}'.format(A_squared)) + "\enspace(*)"
+    elif A_squared >= p_values[1]:
+        A_squared = str('{:.3f}'.format(A_squared)) + "\enspace(**)"
     else:
         A_squared = str('{:.3f}'.format(A_squared))
 
 
 
     #Format return parameter
-    return_value = ["W^2={},".format(W_squared), "U^2={},".format(U_squared), "{}".format(A_squared)]
+    return_value = ["W^2={},".format(W_squared), "U^2={},".format(U_squared), "A^2={}".format(A_squared)]
 
     return(return_value)
     
 #compute d* statistic 
-def compute_dstar(p, b, size):
+def compute_dstar(p, b, size, mode):
     #compute maximum value of d
     d_max = 0
     for x in range(0, len(b)):
@@ -542,6 +551,8 @@ def compute_dstar(p, b, size):
     for x in range(0, len(b)):
         d_star += (p[x] - b[x]) ** 2
 
+    
+
     d_star_morrow = d_star
     d_star = math.sqrt(d_star)
     d_star_norm = d_star / d_max
@@ -550,17 +561,24 @@ def compute_dstar(p, b, size):
     d_star_morrow = size * d_star_morrow
     d_star_morrow = math.sqrt(d_star_morrow)
 
+    if mode == '1':
+        p_values = [1.35, 1.66]
+    elif mode == '2':      
+        p_values = [1.32, 1.49]
+    else:
+        p_values = [1.32, 1.49]
+
     #Compute confidence levels for Morrow's d* test
-    if d_star_morrow >= 1.330 and d_star_morrow < 1.596:
-        d_star_morrow = str(format('{:.3f}'.format(d_star_morrow)))
-    elif d_star_morrow >= 1.596:
-        d_star_morrow = str(format('{:.3f}'.format(d_star_morrow)))
+    if d_star_morrow >= p_values[0] and d_star_morrow < p_values[1]:
+        d_star_morrow = str(format('{:.3f}'.format(d_star_morrow))) + "\enspace(*)"
+    elif d_star_morrow >= p_values[1]:
+        d_star_morrow = str(format('{:.3f}'.format(d_star_morrow))) + "\enspace(**)"
     else:
         d_star_morrow = str(format('{:.3f}'.format(d_star_morrow)))
 
     d_test = []
     d_test.append(str(d_star_norm))
-    d_test.append(r'{}'.format(str(d_star_morrow)))
+    d_test.append(r'd*={}'.format(str(d_star_morrow)))
     d_test.append(" (Morrow)")
 
     return(d_test)
@@ -591,7 +609,7 @@ def main(mode):
         X_sqaured, von_mises_statistic, d_star_statistic, data_size = digit_test(data, mode)
     
     elif mode == 'f1':
-        X_sqaured, von_mises_statistic, d_star_statistic, data_size = first_digit_benford_finite_range(data)
+        X_sqaured, von_mises_statistic, d_star_statistic, data_size = first_digit_benford_finite_range(data, mode)
     
 
     # # Test statistic Output
