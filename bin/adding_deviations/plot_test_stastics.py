@@ -11,9 +11,10 @@ from matplotlib import ticker
 
 def usage():
     print(f'Plot the variation of test statistics over different values of sigma (parameter controlling the strength of deviations introduced into Benford sets).\n')
-    print(f'{sys.argv[0]} <List of comma delimited sigma values and test statistics> <Normalise boolean> <Plot save location>\n')
+    print(f'{sys.argv[0]} <List of comma delimited sigma values and test statistics> <Normalise boolean> <mode> <Plot save location>\n')
     print(f'<List of comma delimited test statistics> - filepath of computed test statistics to plot')
     print(f'<Normalise boolean> - true or false. If true all test statistics are normalised with respect to their .05 percent significance values.')
+    print(f'<mode> - the mode of operation - first digit (1) or second digit (2).')
     print(f'<Plot save location> - filepath to save resultant plot. Must be a .png file.')
     return(0)
 
@@ -52,22 +53,30 @@ def input_numbers(input_filename):
     return(input_data)
 
 
-def main(base_set, normalise):
+def main(base_set, normalise, mode):
     # import data from file
     data = input_numbers(base_set)
+    
 
     # Define data
     x_axis = [str(float(x[0]) / 100) for x in data]
-    print(x_axis)
+    # x_axis = [str(float(x[0])) for x in data]
+    # print(x_axis)
     X_2 = [x[1] for x in data]
     A_2 = [x[2] for x in data]
     d_star = [x[3] for x in data]
 
     if normalise == 'true':
-        for x in range(0, len(X_2)):
-            X_2[x] = X_2[x] / 1.938
-            A_2[x] = A_2[x] / 2.392
-            d_star[x] = d_star[x] / 1.330
+        if mode == '1':
+            for x in range(0, len(X_2)):
+                X_2[x] = X_2[x] / 1.938
+                A_2[x] = A_2[x] / 2.84
+                d_star[x] = d_star[x] / 1.35
+        elif mode == '2':
+            for x in range(0, len(X_2)):
+                X_2[x] = X_2[x] / 1.938
+                A_2[x] = A_2[x] / 2.61
+                d_star[x] = d_star[x] / 1.32
 
 
     # Define font size
@@ -84,13 +93,22 @@ def main(base_set, normalise):
 
     if normalise != 'true':
         # plt.axhline(y=1.938, linewidth=0.75, color='r', linestyle='--')
-        plt.axhline(y=1.330, linewidth=0.75, color='r', linestyle='--')
-        plt.axhline(y=2.492, linewidth=0.75, color='b', linestyle='--')
+        if mode == '1':
+            plt.axhline(y=1.35, linewidth=0.75, color='r', linestyle='--')
+            plt.axhline(y=2.84, linewidth=0.75, color='b', linestyle='--')
+        elif mode == '2':
+            plt.axhline(y=1.32, linewidth=0.75, color='r', linestyle='--')
+            plt.axhline(y=2.61, linewidth=0.75, color='b', linestyle='--')
+
     elif normalise == 'true':
         plt.axhline(y=1, linewidth=0.75, color='black', linestyle='--')
-        # plt.axhline(y=1.296, linewidth=0.75, color='r', linestyle='--')
-        plt.axhline(y=1.2, linewidth=0.75, color='r', linestyle='--')
-        plt.axhline(y=1.557, linewidth=0.75, color='b', linestyle='--')
+        
+        if mode == '1':
+            plt.axhline(y=1.23, linewidth=0.75, color='r', linestyle='--')
+            plt.axhline(y=1.61, linewidth=0.75, color='b', linestyle='--')
+        elif mode == '2':
+            plt.axhline(y=1.13, linewidth=0.75, color='r', linestyle='--')
+            plt.axhline(y=1.52, linewidth=0.75, color='b', linestyle='--')
 
     plt.legend(loc='best')
 
@@ -102,17 +120,18 @@ def main(base_set, normalise):
     # set xticks
     # locs, labels = plt.xticks()
     # print(locs)
+    # plt.xticks(np.arange(0,55,10))
     plt.xticks(np.arange(0,55,10))
 
     plt.xlabel(r"$\sigma$", fontsize=16)
     plt.ylabel("Normalised Test Statistics", fontsize=16)
-    plt.savefig('{}'.format(sys.argv[3]), bbox_inches='tight')
+    plt.savefig('{}'.format(sys.argv[4]), bbox_inches='tight')
     plt.show()
 
 
 if __name__ == '__main__':
     try:
-        main(sys.argv[1], sys.argv[2])
+        main(sys.argv[1], sys.argv[2], sys.argv[3])
     except Exception as e:
         print(e)
         usage()
