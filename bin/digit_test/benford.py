@@ -484,8 +484,8 @@ def compute_normalised_residuals(observed, expected):
     # Compute errors for expected distribution
     yerror = []
     for x in range(0, len(observed)):
-        yerror.append(math.sqrt(expected[x]))
-
+        yerror.append(math.sqrt(observed[x]))
+    
     # Calculate Normalised residuals
     difference = []
     y_colours = []
@@ -494,14 +494,18 @@ def compute_normalised_residuals(observed, expected):
             yerror[x] = 0.01
 
         #edge case for finite range second digit law
-        if yerror[x] == 0.01 and observed[x] == 1 and expected[x] == 0:
+        if yerror[x] == 0.01:
             difference.append(0)
         else:
             difference.append((observed[x] - expected[x]) / yerror[x])
+        
         if abs(difference[x]) > 1:
             y_colours.append('firebrick')
         else:
             y_colours.append('green')
+        
+    # print(difference)
+    print(yerror)
     return(difference, y_colours, yerror)
 
 #Calculate Z statistic
@@ -741,14 +745,14 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
     ax0 = plt.subplot(gs[0])
 
     if mode in ['1', 'f1']:
-        ax0.errorbar(bins, benford_freq, yerr=yerror, label="Expected Occurrence", color='black', marker='x', fmt='x', capsize=3, elinewidth=1, zorder=1)
+        ax0.errorbar(bins, frequency, yerr=yerror, label="Observed Occurrence", color='black', marker='x', fmt='x', capsize=3, elinewidth=1, zorder=1)
     elif mode == '12':
-        ax0.errorbar(bins, benford_freq, yerr=yerror, label="Expected Occurrence", color='black', marker='.', fmt='x', capsize=2, elinewidth=1, zorder=1)
+        ax0.errorbar(bins, frequency, yerr=yerror, label="Observed Occurrence", color='black', marker='.', fmt='x', capsize=2, elinewidth=1, zorder=1)
     elif mode in ['2','f2']:
-        ax0.errorbar(bins, benford_freq, yerr=yerror, label="Expected Occurrence", color='black', marker='x', fmt='x', capsize=3, elinewidth=1, zorder=1)
+        ax0.errorbar(bins, frequency, yerr=yerror, label="Observed Occurrencee", color='black', marker='x', fmt='x', capsize=3, elinewidth=1, zorder=1)
     
 
-    ax0.bar(bins, frequency, width, color='grey', label="Observed Occurrence", zorder=-1)
+    ax0.bar(bins, benford_freq, width, color='grey', label="Expected Occurrence", zorder=-1)
 
     #Format tick labels in scientific notation
     
