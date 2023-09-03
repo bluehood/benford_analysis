@@ -8,6 +8,7 @@ import scipy.special
 from matplotlib import gridspec
 import matplotlib.patches as mpatches
 from matplotlib import ticker
+import argparse 
 
 
 
@@ -23,7 +24,7 @@ def roundup(x):
 
 # print the usage for the program.
 def usage():
-    print("Analyse data and verify conformity with the Benford Distribution. The output includes several goodness-of-fit tests for the data and a plot of the data is saved to file. Commandline argument required are to the text file containing raw data to analyse, the mode of analysis (see below) and the location to save plotted data.\n\n    python3 benford.py <filename> <mode (numeric)> <plot_filename>\n\nModes:\n f1   First Digit Finite Range \n 1    First Digit\n 12   First-Second Digit\n 12h  First-Second Digit with heatmap\n 12hn Normalised Residual First-Second Digit with heatmap\n 2    Second Digit\n 23h  Second-Third Digit with heatmap\n 23hn Normalised Residual Second-Third Digit with heatmap\n")
+    print("Analyse data and verify conformity with the Benford Distribution. The output includes several goodness-of-fit tests for the data and a plot of the data is saved to file. Commandline argument required are to the text file containing raw data to analyse, the mode of analysis (see below) and the location to save plotted data.\n\n    python3 benford.py -i <filename> -m <mode (numeric)> -o  <plot_filename>\n\nModes:\n f1   First Digit Finite Range \n 1    First Digit\n 12   First-Second Digit\n 12h  First-Second Digit with heatmap\n 12hn Normalised Residual First-Second Digit with heatmap\n 2    Second Digit\n 23h  Second-Third Digit with heatmap\n 23hn Normalised Residual Second-Third Digit with heatmap\n")
     return(0)
 
 
@@ -731,7 +732,7 @@ def compute_dstar(p, b, size, mode):
 
 
 
-def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar, mode):
+def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar, mode, outfile):
     #increase font size
     plt.rcParams.update({'font.size': 13.5})
     # plt.rcParams['text.usetex'] = True
@@ -899,8 +900,8 @@ def plot_bar_chart(bins, frequency, benford_freq, dataset_size, von_mises, dstar
     plt.axhline(y=-1, linewidth=0.75, color='black', linestyle='--')
     #plt.legend(handles=legend_elements, loc='best')
     fig.align_ylabels()
-    print('[Debug] Saving Plot as {}'.format(sys.argv[3]))
-    plt.savefig('{}'.format(sys.argv[3]), bbox_inches='tight')
+    print('[Debug] Saving Plot as {}'.format(outfile))
+    plt.savefig('{}'.format(outfile), bbox_inches='tight')
     return(0)
 
 
@@ -1179,7 +1180,7 @@ def annotate_heatmap(im, data=None, valfmt="{x}",
 ### --------------------------------------- Main() --------------------------------------------- ###
 
 #main function of the program. 
-def main(mode):
+def main(mode, outfile):
     #Process mode of analysis
     try:
         str(mode)
@@ -1236,7 +1237,7 @@ def main(mode):
     # Create plots of the data
     print("[Debug] Generating Plot of the data.")
     if mode in ['1','f1','f2','2','12']:
-        plot_bar_chart(bins_to_plot, data_raw, benford_raw, data_size, von_mises_statistic[2], d_star_statistic[1], mode)
+        plot_bar_chart(bins_to_plot, data_raw, benford_raw, data_size, von_mises_statistic[2], d_star_statistic[1], mode, outfile)
     
     elif mode in ['12h', '12hn', '23h', '23hn']:
         if 'hn' in mode:
@@ -1249,8 +1250,19 @@ def main(mode):
     exit()
 
 if __name__ == '__main__':
-    if len(sys.argv) != 4:
+    try:
+        parser = argparse.ArgumentParser(description="Use HMM and the RSI indicator to indentify good time to invest in companies.")
+        parser.add_argument("-m", "--mode", help="BL Law to apply e.g. 1 is the first digit law.", default='1')
+        parser.add_argument("-o", "--outfile", help="Output figure name as a filepath.", default='figure1.png')
+        parser.add_argument("-i", "--infile", help="Input file containing data to analyse.")
+
+        args = parser.parse_args()
+        mode = args.mode
+        outfile = args.outfile
+        inputfile = args.inputfile
+    except Exception as e:
         usage()
+        parser.print_help()
         exit()
     else:
         main(sys.argv[2])
