@@ -178,6 +178,45 @@ def plotEpsilonDeviations(X,Y, Y2):
 
     return
     
+
+def plotBenfordPlot(benford_ratio_data_set):
+
+    # Expected values due to Benford's law and Zipfs law
+    expected_benford = {
+        '1' : np.log10(2),
+        '2' : np.log10(1+1/2),
+        '3' : np.log10(1+1/3),
+        '4' : np.log10(1+1/4),
+        '5' : np.log10(1+1/5),
+        '6' : np.log10(1+1/6),
+        '7' : np.log10(1+1/7),
+        '8' : np.log10(1+1/8),
+        '9' : np.log10(1+1/9)
+    }
+
+    expected_zipf = {
+        '1' : 0.3547514430742842,
+        '2' : 0.1725053566247906,
+        '3' : 0.12195303947017247,
+        '4' : 0.07713882190756487,
+        '5' : 0.1007579940811139,
+        '6' : 0.05191670572170785,
+        '7' : 0.046931694039928105,
+        '8' : 0.038562420211001064,
+        '9' : 0.03548252486949083
+    }
+    #increase font size
+    plt.rcParams.update({'font.size': 13.5})
+    
+    # Setup figure
+    fig = plt.figure(figsize=(8, 6))
+    gs = gridspec.GridSpec(2,1, height_ratios=[3,1])
+    ax0 = plt.subplot(gs[0])
+
+    ax0.errorbar(bins, frequency, yerr=yerror, label="Observed Occurrence", color='black', marker='x', fmt='x', capsize=3, elinewidth=1, zorder=1)
+
+    return
+
 def main():
     parser = argparse.ArgumentParser(description="Investigate Benford ratios -- a continuation of the Zeta function and Zipf's law using first digit analysis.")
     parser.add_argument("-t", "--terms", help="Number of terms to create.", default='30')
@@ -187,17 +226,19 @@ def main():
     args = parser.parse_args()
     number_of_terms = args.terms
     epsilon = float(args.epsilon)
+    output_file = args.output
 
     original_benford_ratios = BenfordRatio(number_of_terms)
     checkNormalisation(original_benford_ratios)
     
     # Ordinary Benford Ratio with no deviations
-    # benford_ratio_data_set = {}
-    # print(f'# Zeta-Benford Ratio w/ Epsilon = 0')
-    # for digit in range(1, 10):
-    #     digit_analysed, time_series = BenfordRatioGivenDigit(number_of_terms, str(digit), 0)
-    #     benford_ratio_data_set[digit_analysed] = time_series
+    benford_ratio_data_set = {}
+    print(f'# Zeta-Benford Ratio w/ Epsilon = 0')
+    for digit in range(1, 10):
+        digit_analysed, time_series = BenfordRatioGivenDigit(number_of_terms, str(digit), 0)
+        benford_ratio_data_set[digit_analysed] = time_series
 
+    
     # # Benford ratio with Epsilon Deviations
     # benford_ratio_data_set_epsilon = {}
     # print(f'# Zeta-Benford Ratio w/ Epsilon = {epsilon}')
@@ -211,27 +252,27 @@ def main():
     # plotTimeSeries(benford_ratio_data_set_epsilon)
 
     # Variability of chi-squared as a function of Epsilon
-    chi2_list = []
-    chi2_Benford_metric_list = []
-    chi_squared_E_values = []
-    for E in np.arange(-1, 1 + 0.1, 0.1):
-        benford_ratio_data_set_epsilon = {}
-        for digit in range(1, 10):
-            digit_analysed, time_series = BenfordRatioGivenDigit(number_of_terms, str(digit), E)
-            benford_ratio_data_set_epsilon[digit_analysed] = time_series
-        chi2 = ChiSquared(benford_ratio_data_set_epsilon)
-        chi2_benford = ChiSquaredBenford(benford_ratio_data_set_epsilon)
-        chi_squared_E_values.append(E)
-        chi2_list.append(chi2)
-        chi2_Benford_metric_list.append(chi2_benford)
+    # chi2_list = []
+    # chi2_Benford_metric_list = []
+    # chi_squared_E_values = []
+    # for E in np.arange(-1.5, 0.5 + 0.001, 0.001):
+    #     benford_ratio_data_set_epsilon = {}
+    #     for digit in range(1, 10):
+    #         digit_analysed, time_series = BenfordRatioGivenDigit(number_of_terms, str(digit), E)
+    #         benford_ratio_data_set_epsilon[digit_analysed] = time_series
+    #     chi2 = ChiSquared(benford_ratio_data_set_epsilon)
+    #     chi2_benford = ChiSquaredBenford(benford_ratio_data_set_epsilon)
+    #     chi_squared_E_values.append(E)
+    #     chi2_list.append(chi2)
+    #     chi2_Benford_metric_list.append(chi2_benford)
 
     # plotEpsilonDeviations(chi_squared_E_values, chi2_list, chi2_Benford_metric_list)
 
-    print(f'Minima Zipfs Law: {min(chi2_list)} at {chi2_list.index(min(chi2_list))}')
+    # print(f'Minima Zipfs Law: {min(chi2_list)} at {chi2_list.index(min(chi2_list))}')
 
-    min_index, min_value = min(enumerate(chi2_Benford_metric_list), key=lambda x: x[1])
-    print("Minima Benfords Law:", min_value)
-    print("Index of minimum value:", min_index)
+    # min_index, min_value = min(enumerate(chi2_Benford_metric_list), key=lambda x: x[1])
+    # print("Minima Benfords Law:", min_value)
+    # print("Index of minimum value:", min_index)
 
 
 
