@@ -35,6 +35,34 @@ def checkNormalisation(set):
 
     return
 
+def compute_normalised_residuals(observed, expected):
+    # Compute errors for expected distribution
+    yerror = []
+    for x in range(0, len(observed)):
+        yerror.append(math.sqrt(observed[x]))
+    
+    # Calculate Normalised residuals
+    difference = []
+    y_colours = []
+    for x in range(0, len(yerror)):
+        if yerror[x] == 0:
+            yerror[x] = 0.01
+
+        #edge case for finite range second digit law
+        if yerror[x] == 0.01:
+            difference.append(0)
+        else:
+            difference.append((observed[x] - expected[x]) / yerror[x])
+        
+        if abs(difference[x]) > 1:
+            y_colours.append('firebrick')
+        else:
+            y_colours.append('green')
+        
+    # print(difference)
+    print(yerror)
+    return(difference, y_colours, yerror)
+
 def ChiSquared(observed):
     expected = {
         '1' : 0.3547514430742842,
@@ -179,7 +207,7 @@ def plotEpsilonDeviations(X,Y, Y2):
     return
     
 
-def plotBenfordPlot(benford_ratio_data_set):
+def plotBenfordGraph(benford_ratio_data_set):
 
     # Expected values due to Benford's law and Zipfs law
     expected_benford = {
@@ -205,15 +233,154 @@ def plotBenfordPlot(benford_ratio_data_set):
         '8' : 0.038562420211001064,
         '9' : 0.03548252486949083
     }
-    #increase font size
-    plt.rcParams.update({'font.size': 13.5})
+    # Get total number of observations
+    total_number_datapoints = 0
+    for key in benford_ratio_data_set.keys():
+        total_number_datapoints = total_number_datapoints + len(benford_ratio_data_set[key])
+    
+    observed_frequencies_length = total_number_datapoints / len(benford_ratio_data_set.keys())
+
+    # Convert percentages to observations
+    expected_zipf_percentage_list = [ expected_zipf[key] for key in expected_zipf.keys()]
+    expected_zipf_list = [ x * observed_frequencies_length for x in expected_zipf_percentage_list ]
+    expected_benford_percentage_list = [ expected_benford[key] for key in expected_benford.keys()]
+    expected_benford_list = [ x * observed_frequencies_length for x in expected_benford_percentage_list ]
+
+    print(f'Expected Zipf list: {expected_zipf_list}')
+    
+
+    # Get benford probabilites from Benford Ratio Dataset 
+    observed_frequencies_percentage = [ benford_ratio_data_set[key][-1] for key in benford_ratio_data_set.keys() ] 
+    observed_frequencies = [ x * observed_frequencies_length for x in observed_frequencies_percentage ]
+    print(f'observed_frequencies list: {observed_frequencies}')
     
     # Setup figure
+    plt.rcParams.update({'font.size': 13.5})
     fig = plt.figure(figsize=(8, 6))
     gs = gridspec.GridSpec(2,1, height_ratios=[3,1])
     ax0 = plt.subplot(gs[0])
 
-    ax0.errorbar(bins, frequency, yerr=yerror, label="Observed Occurrence", color='black', marker='x', fmt='x', capsize=3, elinewidth=1, zorder=1)
+    difference, y_colours, yerror = compute_normalised_residuals(observed_frequencies, expected_benford_list)
+
+    # Plot error bars
+    bins = [x for x in range(0,9)]
+    ax0.errorbar(bins, observed_frequencies, yerr=yerror, label="Observed Occurrence", color='black', marker='x', fmt='x', capsize=3, elinewidth=1, zorder=1)
+
+    ax0.bar(bins, expected_benford_list, 0.7, color='grey', label="Expected Occurrence", zorder=-1)
+
+    #Format tick labels in scientific notation
+    
+    yticks = ax0.get_yticks()
+    # print(yticks)
+
+    #Find first non-zero integer
+    lower_index = 0
+    for x in range(0, len(yticks)):
+        if yticks[x] > 0:
+            lower_index = x
+            lower_index_value = yticks[x]
+            break
+
+    # Only format in scientfic notation if the lowest tick is greater than 1000
+    # print(lower_index)
+    if lower_index_value >=1000:
+        # Compute difference in magnitude 
+        mag_diff = math.floor(np.log10(yticks[-1])) - math.floor(np.log10(math.floor(yticks[lower_index])))
+        
+        # Compute magnitude to report on ylabel
+        mean_mag_diff = math.floor(np.log10(yticks[lower_index])) + mag_diff
+        report_mag_diff = f'10^{mean_mag_diff}'
+        # print(report_mag_diff)
+        
+        # Divide x ticks by this magnitude to obtain fractional part
+        yticks_fractional = yticks / (10**mean_mag_diff)
+        # print(yticks_fractional)
+        
+        # Set fractional ticks to tick labels
+        plt.yticks(yticks[lower_index - 1:-1], yticks_fractional[lower_index - 1:-1])
+
+    else: 
+        report_mag_diff = ""
+
+    # Format N in scientific notation of N>10000
+    if total_number_datapoints >= 10000:
+        N_mag = math.floor(np.log10(total_number_datapoints))
+        
+        # Compute magnitude to report on ylabel
+        # N_mean_mag_diff = math.floor(np.log10(yticks[lower_index])) + N_mag_diff
+        # print(f'{round(dataset_size / 10**N_mag, 1) } * 10** {N_mag}')
+        dataset_size_report = r'{} \times 10^{}'.format(round(total_number_datapoints / 10**N_mag, 1),N_mag)
+
+    else:
+        dataset_size_report = str(total_number_datapoints)
+
+    # Format axis labels
+    plt.xlabel("Digit Value")
+    if report_mag_diff != "":
+        plt.ylabel(r"Digit Occurrence (${}$)".format(report_mag_diff), fontsize=15)
+    else:
+        plt.ylabel(r"Digit Occurrence", fontsize=15)
+    plt.xticks(bins, "")
+
+    patch = []
+    handles, labels = ax0.get_legend_handles_labels()
+    patch.append(mpatches.Patch(color='green', label=r'$|\sigma|$ < 1'))
+    patch.append(mpatches.Patch(color='firebrick', label=r'$|\sigma|$ > 1,    $N={}$'.format(observed_frequencies_length)))
+        
+    for x in patch:
+        handles.append(x)
+
+    plt.legend(handles=handles, loc='best')
+    
+    plt.subplots_adjust(hspace=0)
+
+    #Second (smaller) subplot
+    #Calculate y ticks
+    y_range = 0
+    for x in difference: 
+        if abs(x) >= y_range:
+            y_range = math.ceil(abs(x))
+
+    
+    #Begin plotting
+    ax1 = plt.subplot(gs[1])
+    ax1.bar(bins, difference, 0.70, color=y_colours)
+
+    bins_ticks = []
+    for x in bins:
+        bins_ticks.append(x + 1)
+
+    plt.xticks(bins, bins_ticks)
+    
+
+    #format spacing on graph
+
+    if y_range > 2 and y_range <= 3:
+        plt.yticks((-y_range + 1, 0, y_range - 1))
+    elif y_range > 3 and y_range <= 6:
+        plt.yticks((-y_range + 1, 0, y_range - 1))
+        #y_range = y_range + 1
+    elif y_range > 6 and y_range <= 10:
+        plt.yticks((-y_range + 3, 0, y_range - 3))
+        #y_range = y_range + 2
+    elif y_range > 10:
+        plt.yticks((-int(y_range/2), 0, int(y_range/2)))
+
+    ax1.set_ylim([-y_range,y_range])
+
+    
+    plt.xlabel("First Digit Value", fontsize=15)
+    plt.ylabel("Normalised Residual", fontsize=15)
+    plt.ylim(-y_range - 0.75, y_range + 0.75)
+
+    #format graph in general
+    plt.axhline(linewidth=0.5, color='black')
+    plt.axhline(y=1, linewidth=0.75, color='black', linestyle='--')
+    plt.axhline(y=-1, linewidth=0.75, color='black', linestyle='--')
+    #plt.legend(handles=legend_elements, loc='best')
+    fig.align_ylabels()
+
+    plt.show()
 
     return
 
@@ -238,6 +405,7 @@ def main():
         digit_analysed, time_series = BenfordRatioGivenDigit(number_of_terms, str(digit), 0)
         benford_ratio_data_set[digit_analysed] = time_series
 
+    plotBenfordGraph(benford_ratio_data_set)
     
     # # Benford ratio with Epsilon Deviations
     # benford_ratio_data_set_epsilon = {}
