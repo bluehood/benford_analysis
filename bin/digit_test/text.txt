@@ -1,6 +1,0 @@
-A dynamic Bayesian network (DBN) is a probabilistic graphical model that extends the concept of a Bayesian network to handle sequential or temporal data. It is used to model and make predictions about systems that change over time. In a DBN:
-
-Nodes represent random variables, which can include both observable and hidden variables.
-Edges between nodes represent probabilistic dependencies between these variables at different time steps.
-The model captures how variables evolve over time using conditional probability distributions.
-DBNs are valuable for various applications, such as time series forecasting, speech recognition, and modeling complex systems where understanding the temporal dependencies is crucial. They are often employed in machine learning and artificial intelligence to model and make predictions in dynamic environments.
