@@ -56,18 +56,17 @@ def loglogPlot(X, Y1, Y2):
     Y2_log = np.log10(Y2)
     plt.rcParams.update({'font.size': 13.5})
     
-
     # Graph
     plt.figure(figsize=(8, 6))
-    plt.scatter(X_log, Y1_log, color='b', marker='x', label='Ideal Zipf Distribution')
-    plt.scatter(X_log, Y2_log, color='black', marker='x', label='Observed Distribution')
+    plt.loglog(X, Y1, color='b', marker='x', label='Ideal Zipf Distribution')
+    plt.loglog(X, Y2, color='black', marker='x', label='Observed Distribution')
 
     # Line of best fit 
     # Perform a linear fit (line of best fit)
-    coefficients = np.polyfit(X_log, Y1_log, 1)
-    slope, intercept = coefficients
-    predicted_y = slope * X_log + intercept
-    plt.plot(X_log, predicted_y, label='Best Fit', color='red')
+    slope, intercept = np.polyfit(X_log, Y1_log, 1)
+    # mx = [ x * slope for x in X ]
+    # predicted_y = mx + intercept
+    # plt.plot(X, predicted_y, label='Best Fit', color='red')
     
     # Add value of s to histogram 
     plt.axhline(y=0, color='white', linestyle='--', label=r'$S=$'+ str(round(-1*slope,3)))
